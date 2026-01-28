@@ -1,0 +1,8 @@
+## Interface: 120000
+## Title: FDCounter
+## Notes: Counts Follower Dungeon entries
+## Author: virasio
+## Version: 0.1.0
+## IconTexture: Interface\AddOns\FDCounter\Assets\Icon
+
+FDCounter.lua

@@ -6,12 +6,13 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 
 ## Stages
 
-### Stage 1: Minimal Addon — "Hello"
+### Stage 1: Minimal Addon — "Hello" ✅
 1. Create `FDCounter.toc` with `## Interface: 120000`
 2. Create `FDCounter.lua` — `/fdcounter` → `"Hello from FDCounter!"`
 3. Create symlink to WoW addons folder (manually, path not stored in repo)
 4. Test in game: `/reload` → `/fdcounter`
-5. Commit to `develop`
+5. Add custom icon in `Assets/Icon.tga`
+6. Commit to `develop`
 
 ### Stage 2: Counter with Persistence and Auto-Reset
 1. Add `## SavedVariables: FDCounterDB` to TOC
