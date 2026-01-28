@@ -14,14 +14,15 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 5. Add custom icon in `Assets/Icon.tga`
 6. Commit to `develop`
 
-### Stage 2: Counter with Persistence and Auto-Reset
+### Stage 2: Counter with Persistence and Auto-Reset ✅
 1. Add `## SavedVariables: FDCounterDB` to TOC
 2. Structure: `FDCounterDB = { count = 0, resetTime = <timestamp> }`
 3. On load: use `C_DateAndTime.GetSecondsUntilDailyReset()` to calculate `resetTime`
 4. If `time() >= resetTime` → reset `count`, update `resetTime`
 5. `/fdcounter` — show counter and time until reset
 6. `/fdcounter reset` — manual reset
-7. Commit to `develop`
+7. `/fdcounter ++` — manual increment (for testing)
+8. Commit to `develop`
 
 ### Stage 3: Auto-Count Follower Dungeons + GitHub Actions
 1. Listen to `PLAYER_ENTERING_WORLD` → check `GetInstanceInfo()` → `difficultyID == 205`

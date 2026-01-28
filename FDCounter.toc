@@ -4,5 +4,6 @@
 ## Author: virasio
 ## Version: 0.1.0
 ## IconTexture: Interface\AddOns\FDCounter\Assets\Icon
+## SavedVariables: FDCounterDB
 
 FDCounter.lua
