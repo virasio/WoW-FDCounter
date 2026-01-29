@@ -34,10 +34,11 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 7. Update README with full description
 8. Commit to `develop`
 
-### Stage 4: GitHub Actions & Publishing
+### Stage 4: GitHub Actions & Publishing ✅
 1. Create `.github/workflows/release.yml` — `BigWigsMods/packager@v2`
-2. Add X-identifiers to TOC (after registering projects on CurseForge/Wago)
-3. **Merge to `main`** — first working release  → Tag `v0.1.0` → auto-publish
+2. Add X-identifiers to TOC: CurseForge `1447993`, Wago `qKQm8aKx`
+3. Add secrets to GitHub: `CF_API_KEY`, `WAGO_API_TOKEN`
+4. **Merge to `main`** — first working release  → Tag `v0.1.0` → auto-publish
 
 ### Stage 5: Extended Log
 1. Structure: `FDCounterDB.log = { {time, instance, character, realm}, ... }`

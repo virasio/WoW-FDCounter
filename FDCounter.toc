@@ -2,8 +2,10 @@
 ## Title: FDCounter
 ## Notes: Counts Follower Dungeon entries
 ## Author: virasio
-## Version: 0.1.0
+## Version: @project-version@
 ## IconTexture: Interface\AddOns\FDCounter\Assets\Icon
 ## SavedVariables: FDCounterDB
+## X-Curse-Project-ID: 1447993
+## X-Wago-ID: qKQm8aKx
 
 FDCounter.lua
