@@ -5,13 +5,14 @@ local ADDON_NAME, FDC = ...
 
 -- Format seconds into hours and minutes
 function FDC:FormatTimeUntilReset()
+    local L = self.L
     local seconds = FDCounterDB.resetTime - time()
     if seconds <= 0 then
-        return "now"
+        return L.TIME_NOW
     end
     local hours = math.floor(seconds / 3600)
     local minutes = math.floor((seconds % 3600) / 60)
-    return string.format("%dh %dm", hours, minutes)
+    return string.format(L.TIME_FORMAT, hours, minutes)
 end
 
 -- Increment counter
@@ -31,10 +32,11 @@ end
 
 -- Print current status to chat
 function FDC:PrintStatus(showHint)
-    print(string.format("FDCounter: %d entries | Reset in %s", 
+    local L = self.L
+    print(string.format(L.STATUS_FORMAT, 
         self:GetCount(), self:FormatTimeUntilReset()))
     if showHint and not FDCounterDB.helpShown then
-        print("  Use /fdcounter help to see all available commands.")
+        print(L.HINT_HELP)
         FDCounterDB.helpShown = true
     end
 end
@@ -102,12 +104,13 @@ end
 
 -- Print log entries from last H hours
 function FDC:PrintLog(hours)
+    local L = self.L
     local log = self:GetLog()
     local cutoff = time() - (hours * 3600)
     local count = 0
     
-    print("FDCounter: Log (last " .. hours .. "h)")
-    print("Time, Event, Character, Instance")
+    print(string.format(L.LOG_HEADER, hours))
+    print(L.LOG_COLUMNS)
     
     for _, entry in ipairs(log) do
         if entry.time >= cutoff then
@@ -128,7 +131,7 @@ function FDC:PrintLog(hours)
     end
     
     if count == 0 then
-        print("  (no entries)")
+        print(L.LOG_NO_ENTRIES)
     end
 end
 
@@ -204,21 +207,22 @@ end
 
 -- Print statistics
 function FDC:PrintStatistics(args)
+    local L = self.L
     local hours, instanceID = self:ParseStatArgs(args or "")
     local log = self:GetLog()
     local characters = self:GetCharactersFromLog(log, instanceID)
     
     -- Build header
-    local header = "Character, Total"
+    local header = L.STAT_CHARACTER .. ", " .. L.STAT_TOTAL
     for _, h in ipairs(hours) do
         header = header .. ", " .. h .. "h"
     end
     
     -- Print header
     if instanceID then
-        print("FDCounter: Statistics (Instance ID:" .. instanceID .. ")")
+        print(string.format(L.STAT_HEADER_INSTANCE, instanceID))
     else
-        print("FDCounter: Statistics")
+        print(L.STAT_HEADER)
     end
     print(header)
     
@@ -245,12 +249,12 @@ function FDC:PrintStatistics(args)
     
     -- Print total row
     if #characters > 0 then
-        local totalLine = "Total, " .. totalAll
+        local totalLine = L.STAT_TOTAL .. ", " .. totalAll
         for i = 1, #hours do
             totalLine = totalLine .. ", " .. totalByHours[i]
         end
         print(totalLine)
     else
-        print("  (no entries)")
+        print(L.STAT_NO_ENTRIES)
     end
 end

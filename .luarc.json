@@ -1,0 +1,17 @@
+{
+    "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+    "runtime.version": "Lua 5.1",
+    "workspace.ignoreDir": [".release", ".git"],
+    "diagnostics.globals": [
+        "FDCounterDB",
+        "GetInstanceInfo",
+        "UnitFullName",
+        "C_DateAndTime",
+        "C_Timer",
+        "SlashCmdList",
+        "SLASH_FDCOUNTER1",
+        "CreateFrame"
+    ],
+    "hint.enable": false,
+    "type.weakUnionCheck": true
+}

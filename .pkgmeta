@@ -1,7 +1,13 @@
 package-as: FDCounter
 
+enable-toc-creation: yes
+
+plain-copy:
+  - Locales.lua
+
 ignore:
   - .github
   - .gitignore
+  - .luarc.json
   - README.md
   - CHANGELOG.md
