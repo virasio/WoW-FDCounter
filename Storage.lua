@@ -8,6 +8,7 @@ local defaults = {
     count = 0,
     resetTime = 0,
     currentInstanceID = nil,
+    log = {},
 }
 
 -- Calculate next daily reset timestamp
@@ -32,6 +33,7 @@ end
 function FDC:CheckAndResetCounter()
     if time() >= FDCounterDB.resetTime then
         FDCounterDB.count = 0
+        FDCounterDB.log = {}
         FDCounterDB.resetTime = self:GetNextResetTime()
     end
 end
@@ -39,6 +41,7 @@ end
 -- Reset counter manually
 function FDC:ResetCounter()
     FDCounterDB.count = 0
+    FDCounterDB.log = {}
     FDCounterDB.resetTime = self:GetNextResetTime()
 end
 
@@ -60,4 +63,25 @@ end
 -- Clear current instance tracking
 function FDC:ClearCurrentInstance()
     FDCounterDB.currentInstanceID = nil
+end
+
+-- Add event to log
+-- event: "entry", "exit", "reentry", "complete"
+function FDC:LogEvent(event, instanceID, instanceName)
+    local name, realm = UnitFullName("player")
+    realm = realm or GetRealmName()
+    local character = name .. "-" .. realm
+    
+    table.insert(FDCounterDB.log, {
+        time = time(),
+        event = event,
+        character = character,
+        instanceID = instanceID,
+        instanceName = instanceName,
+    })
+end
+
+-- Get log entries
+function FDC:GetLog()
+    return FDCounterDB.log
 end

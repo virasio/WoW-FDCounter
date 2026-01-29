@@ -51,12 +51,23 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 3. Single `FDC:Initialize()` entry point
 4. Commit to `develop`
 
-### Stage 5: Extended Log
-1. Structure: `FDCounterDB.log = { {time, instance, character, realm}, ... }`
-2. Log each entry with full information
-3. `/fdcounter log [H]` — show entries from last H hours (default: 24)
-4. Filter by instance, character
-5. Merge → tag `v0.2.0`
+### Stage 5: Extended Log and Statistics
+#### 5.1: Event Logging ✅
+1. Log structure: `FDCounterDB.log = { {time, event, character, instanceID, instanceName}, ... }`
+2. Events: `entry`, `exit`, `reentry`, `complete`
+3. Character format: `"Name-Realm"`
+4. Clear log on daily reset
+5. Commit to `develop`
+
+#### 5.2: Log Output
+1. `/fdcounter log [H]` — show events from last H hours (default: 24)
+2. Commit to `develop`
+
+#### 5.3: Statistics
+1. `/fdcounter stat [H1,H2,...] [instanceID]` — CSV-style statistics
+2. Output: character, total, count per each H period
+3. Last row: Total across all characters
+4. Merge → tag `v0.2.0`
 
 ### Stage 6: UI Panel
 1. Draggable frame with text `"FD: N"`
