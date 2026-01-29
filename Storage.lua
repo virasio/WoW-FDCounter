@@ -8,6 +8,7 @@ local defaults = {
     count = 0,
     resetTime = 0,
     currentInstanceID = nil,
+    currentInstanceName = nil,
     log = {},
 }
 
@@ -55,18 +56,25 @@ function FDC:GetCurrentInstanceID()
     return FDCounterDB.currentInstanceID
 end
 
--- Set current instance ID
-function FDC:SetCurrentInstanceID(instanceID)
+-- Get current instance name being tracked
+function FDC:GetCurrentInstanceName()
+    return FDCounterDB.currentInstanceName
+end
+
+-- Set current instance info
+function FDC:SetCurrentInstance(instanceID, instanceName)
     FDCounterDB.currentInstanceID = instanceID
+    FDCounterDB.currentInstanceName = instanceName
 end
 
 -- Clear current instance tracking
 function FDC:ClearCurrentInstance()
     FDCounterDB.currentInstanceID = nil
+    FDCounterDB.currentInstanceName = nil
 end
 
 -- Add event to log
--- event: "entry", "exit", "reentry", "complete"
+-- event: FDC.EventType.ENTRY, .EXIT, .REENTRY, .COMPLETE
 function FDC:LogEvent(event, instanceID, instanceName)
     local name, realm = UnitFullName("player")
     realm = realm or GetRealmName()

@@ -59,7 +59,7 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 4. Clear log on daily reset
 5. Commit to `develop`
 
-#### 5.2: Log Output
+#### 5.2: Log Output ✅
 1. `/fdcounter log [H]` — show events from last H hours (default: 24)
 2. Commit to `develop`
 

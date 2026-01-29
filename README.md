@@ -7,7 +7,7 @@
 
 A World of Warcraft addon that counts Follower Dungeon entries.
 
-Follower Dungeons have a daily entry limit per account. This addon automatically tracks how many times you've entered Follower Dungeons since the last server reset.
+Follower Dungeons have a daily entry limit per account. This addon automatically tracks how many times you've entered Follower Dungeons since the last server reset. It also keeps an event log for statistics analysis across multiple characters.
 
 ## Features
 
@@ -15,14 +15,16 @@ Follower Dungeons have a daily entry limit per account. This addon automatically
 - **Persistent counter** — saves between sessions
 - **Auto-reset** — resets at server daily reset time
 - **Duplicate protection** — won't count `/reload` as new entry
+- **Event log** — tracks entries, exits, re-entries, and completions
 
 ## Commands
 
-| Command            | Description                             |
-|--------------------|-----------------------------------------|
-| `/fdcounter`       | Show current count and time until reset |
-| `/fdcounter reset` | Reset counter manually                  |
-| `/fdcounter help`  | Show available commands                 |
+| Command              | Description                             |
+|----------------------|-----------------------------------------|
+| `/fdcounter`         | Show current count and time until reset |
+| `/fdcounter reset`   | Reset counter manually                  |
+| `/fdcounter log [H]` | Show log for last H hours (default: 24) |
+| `/fdcounter help`    | Show available commands                 |
 
 ## Installation
 

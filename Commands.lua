@@ -19,6 +19,13 @@ local commands = {
         end,
         help = "Reset counter to zero",
     },
+    ["log"] = {
+        handler = function(args)
+            local hours = tonumber(args) or 24
+            FDC:PrintLog(hours)
+        end,
+        help = "Show log for last [H] hours (default: 24)",
+    },
     ["help"] = {
         handler = function()
             FDC:PrintHelp()
@@ -32,6 +39,7 @@ function FDC:PrintHelp()
     print("FDCounter v" .. self.version .. " - Commands:")
     print("  /fdcounter - " .. commands[""].help)
     print("  /fdcounter reset - " .. commands["reset"].help)
+    print("  /fdcounter log [H] - " .. commands["log"].help)
     print("  /fdcounter help - " .. commands["help"].help)
 end
 
@@ -40,11 +48,13 @@ function FDC:RegisterCommands()
     SLASH_FDCOUNTER1 = "/fdcounter"
     
     SlashCmdList.FDCOUNTER = function(msg)
-        local cmd = msg:lower():trim()
+        local input = msg:trim()
+        local cmd, args = input:match("^(%S*)%s*(.*)$")
+        cmd = cmd:lower()
         
         local command = commands[cmd]
         if command then
-            command.handler()
+            command.handler(args)
         else
             -- Unknown command - show status (original behavior)
             FDC:CheckAndResetCounter()
