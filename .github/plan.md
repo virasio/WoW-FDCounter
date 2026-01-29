@@ -24,30 +24,34 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 7. `/fdcounter ++` — manual increment (for testing)
 8. Commit to `develop`
 
-### Stage 3: Auto-Count Follower Dungeons + GitHub Actions
+### Stage 3: Auto-Count Follower Dungeons ✅
 1. Listen to `PLAYER_ENTERING_WORLD` → check `GetInstanceInfo()` → `difficultyID == 205`
-2. Protect against duplicates on `/reload` (store `lastInstanceID`)
-3. Chat notification on entry
-4. Create `.github/workflows/release.yml` — `BigWigsMods/packager@v2`
-5. Add X-identifiers to TOC (after registering projects)
+2. Delay check by 3 seconds (API update timing)
+3. Protect against duplicates on `/reload` (ignore isLogin/isReload)
+4. Protect against re-entry via portal (track `currentInstanceID`, clear on `GROUP_LEFT`)
+5. Chat notification on entry
 6. Create `CHANGELOG.md`
 7. Update README with full description
-8. **Merge to `main`** — first working release
-9. Tag `v0.1.0` → auto-publish
+8. Commit to `develop`
 
-### Stage 4: UI Panel
+### Stage 4: GitHub Actions & Publishing
+1. Create `.github/workflows/release.yml` — `BigWigsMods/packager@v2`
+2. Add X-identifiers to TOC (after registering projects on CurseForge/Wago)
+3. **Merge to `main`** — first working release  → Tag `v0.1.0` → auto-publish
+
+### Stage 5: Extended Log
+1. Structure: `FDCounterDB.log = { {time, instance, character, realm}, ... }`
+2. Log each entry with full information
+3. `/fdcounter log [H]` — show entries from last H hours (default: 24)
+4. `/fdcounter help` — show available commands
+5. Filter by instance, character
+6. Merge → tag `v0.2.0`
+
+### Stage 6: UI Panel
 1. Draggable frame with text `"FD: N"`
 2. Save position in `FDCounterDB.position`
 3. Commands `/fdcounter show`, `/fdcounter hide`
-4. Merge → tag `v0.2.0`
-
-### Stage 5 (Future): Extended Log
-1. Structure: `FDCounterDB.log = { {time, instance, character, realm}, ... }`
-2. Log each entry with full information
-3. `/fdcounter log [N]` — show last N entries
-4. `/fdcounter log export` — export to chat/copyable format
-5. Filter by instance, character
-6. Analysis: entries in last N hours
+4. Merge → tag `v1.0.0`
 
 ## Technical Notes
 
