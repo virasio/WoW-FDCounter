@@ -22,6 +22,7 @@ Follower Dungeons have a daily entry limit per account. This addon automatically
 |--------------------|-----------------------------------------|
 | `/fdcounter`       | Show current count and time until reset |
 | `/fdcounter reset` | Reset counter manually                  |
+| `/fdcounter help`  | Show available commands                 |
 
 ## Installation
 

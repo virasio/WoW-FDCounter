@@ -40,13 +40,23 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 3. Add secrets to GitHub: `CF_API_KEY`, `WAGO_API_TOKEN`
 4. **Merge to `main`** — first working release  → Tag `v0.1.0` → auto-publish
 
+### Stage 4.1: Code Refactoring ✅
+1. Split monolithic `FDCounter.lua` into modules:
+   - `Core.lua` — namespace, version, constants
+   - `Storage.lua` — SavedVariables, data persistence
+   - `Logic.lua` — business logic, event handlers
+   - `Events.lua` — event registration and dispatch
+   - `Commands.lua` — slash command handling
+2. Add `/fdcounter help` command
+3. Single `FDC:Initialize()` entry point
+4. Commit to `develop`
+
 ### Stage 5: Extended Log
 1. Structure: `FDCounterDB.log = { {time, instance, character, realm}, ... }`
 2. Log each entry with full information
 3. `/fdcounter log [H]` — show entries from last H hours (default: 24)
-4. `/fdcounter help` — show available commands
-5. Filter by instance, character
-6. Merge → tag `v0.2.0`
+4. Filter by instance, character
+5. Merge → tag `v0.2.0`
 
 ### Stage 6: UI Panel
 1. Draggable frame with text `"FD: N"`
