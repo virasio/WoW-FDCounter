@@ -8,14 +8,14 @@ local commands = {
     [""] = {
         handler = function()
             FDC:CheckAndResetCounter()
-            FDC:PrintStatus()
+            FDC:PrintStatus(true)
         end,
         help = "Show current count and time until reset",
     },
     ["reset"] = {
         handler = function()
             FDC:ResetCounter()
-            FDC:PrintStatus()
+            FDC:PrintStatus(false)
         end,
         help = "Reset counter to zero",
     },
@@ -25,6 +25,12 @@ local commands = {
             FDC:PrintLog(hours)
         end,
         help = "Show log for last [H] hours (default: 24)",
+    },
+    ["stat"] = {
+        handler = function(args)
+            FDC:PrintStatistics(args)
+        end,
+        help = "Show statistics [H1,H2,...] [instanceID]",
     },
     ["help"] = {
         handler = function()
@@ -37,10 +43,13 @@ local commands = {
 -- Print help message
 function FDC:PrintHelp()
     print("FDCounter v" .. self.version .. " - Commands:")
-    print("  /fdcounter - " .. commands[""].help)
-    print("  /fdcounter reset - " .. commands["reset"].help)
-    print("  /fdcounter log [H] - " .. commands["log"].help)
-    print("  /fdcounter help - " .. commands["help"].help)
+    print("  /fdcounter — show current count and time until reset")
+    print("  /fdcounter help — show this help message")
+    print("  /fdcounter reset — reset counter and log to zero")
+    print("  /fdcounter log [H] — show event log for last H hours (default: 24)")
+    print("  /fdcounter stat [H1,H2,...] [ID] — show statistics")
+    print("    Examples: /fdcounter stat 1,6,12")
+    print("              /fdcounter stat 1,6 2648")
 end
 
 -- Register slash commands

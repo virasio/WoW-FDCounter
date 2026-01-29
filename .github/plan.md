@@ -63,11 +63,17 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 1. `/fdcounter log [H]` — show events from last H hours (default: 24)
 2. Commit to `develop`
 
-#### 5.3: Statistics
+#### 5.3: Statistics ✅
 1. `/fdcounter stat [H1,H2,...] [instanceID]` — CSV-style statistics
 2. Output: character, total, count per each H period
 3. Last row: Total across all characters
-4. Merge → tag `v0.2.0`
+4. Instance ID detection: standalone number > 100
+5. Commit to `develop`
+
+#### 5.4: Refactoring and Pipeline
+1. Code refactoring (TBD)
+2. Pipeline configuration (TBD)
+3. Merge → tag `v0.2.0`
 
 ### Stage 6: UI Panel
 1. Draggable frame with text `"FD: N"`

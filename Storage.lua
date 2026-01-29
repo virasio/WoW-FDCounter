@@ -10,6 +10,7 @@ local defaults = {
     currentInstanceID = nil,
     currentInstanceName = nil,
     log = {},
+    helpShown = false,
 }
 
 -- Calculate next daily reset timestamp
