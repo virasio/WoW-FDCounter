@@ -7,53 +7,45 @@ local ADDON_NAME, FDC = ...
 local commands = {
     [""] = function()
         FDC:CheckAndResetCounter()
-        FDC:PrintStatus(true)
+        local data = FDC:GetStatusData()
+        FDC:PrintStatus(data, true)
     end,
     ["reset"] = function()
         FDC:ResetCounter()
-        FDC:PrintStatus(false)
+        local data = FDC:GetStatusData()
+        FDC:PrintStatus(data, false)
     end,
     ["log"] = function(args)
         local hours = tonumber(args) or 24
-        FDC:PrintLog(hours)
+        local data = FDC:GetLogData(hours)
+        FDC:PrintLog(data)
     end,
     ["stat"] = function(args)
-        FDC:PrintStatistics(args)
+        local data = FDC:GetStatisticsData(args)
+        FDC:PrintStatistics(data)
     end,
     ["help"] = function()
         FDC:PrintHelp()
     end,
 }
 
--- Print help message
-function FDC:PrintHelp()
-    local L = self.L
-    print(string.format(L.HELP_HEADER, self.version))
-    print(L.HELP_CMD_DEFAULT)
-    print(L.HELP_CMD_HELP)
-    print(L.HELP_CMD_RESET)
-    print(L.HELP_CMD_LOG)
-    print(L.HELP_CMD_STAT)
-    print(L.HELP_CMD_STAT_EX1)
-    print(L.HELP_CMD_STAT_EX2)
-end
-
 -- Register slash commands
 function FDC:RegisterCommands()
     SLASH_FDCOUNTER1 = "/fdcounter"
-    
+
     SlashCmdList.FDCOUNTER = function(msg)
         local input = msg:trim()
         local cmd, args = input:match("^(%S*)%s*(.*)$")
         cmd = cmd:lower()
-        
+
         local command = commands[cmd]
         if command then
             command(args)
         else
             -- Unknown command - show status (original behavior)
             FDC:CheckAndResetCounter()
-            FDC:PrintStatus()
+            local data = FDC:GetStatusData()
+            FDC:PrintStatus(data, false)
         end
     end
 end

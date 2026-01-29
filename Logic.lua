@@ -3,18 +3,6 @@
 
 local ADDON_NAME, FDC = ...
 
--- Format seconds into hours and minutes
-function FDC:FormatTimeUntilReset()
-    local L = self.L
-    local seconds = FDCounterDB.resetTime - time()
-    if seconds <= 0 then
-        return L.TIME_NOW
-    end
-    local hours = math.floor(seconds / 3600)
-    local minutes = math.floor((seconds % 3600) / 60)
-    return string.format(L.TIME_FORMAT, hours, minutes)
-end
-
 -- Increment counter
 function FDC:IncrementCounter()
     self:CheckAndResetCounter()
@@ -30,15 +18,13 @@ function FDC:GetFollowerDungeonInfo()
     return isFollowerDungeon, instanceID, instanceName
 end
 
--- Print current status to chat
-function FDC:PrintStatus(showHint)
-    local L = self.L
-    print(string.format(L.STATUS_FORMAT, 
-        self:GetCount(), self:FormatTimeUntilReset()))
-    if showHint and not FDCounterDB.helpShown then
-        print(L.HINT_HELP)
-        FDCounterDB.helpShown = true
-    end
+-- Get status data for display
+-- Returns: {count, secondsUntilReset}
+function FDC:GetStatusData()
+    return {
+        count = self:GetCount(),
+        secondsUntilReset = FDCounterDB.resetTime - time()
+    }
 end
 
 -- Handle zone change to detect Follower Dungeon entry
@@ -47,25 +33,25 @@ function FDC:OnPlayerEnteringWorld(isLogin, isReload)
     if isLogin or isReload then
         return
     end
-    
+
     -- Delay check to allow GetInstanceInfo() to update
     C_Timer.After(3, function()
         local isFollowerDungeon, instanceID, instanceName = self:GetFollowerDungeonInfo()
         local currentInstanceID = self:GetCurrentInstanceID()
-        
+
         if isFollowerDungeon then
             if currentInstanceID == nil then
                 -- First entry into this dungeon
                 self:SetCurrentInstance(instanceID, instanceName)
                 self:IncrementCounter()
                 self:LogEvent(self.EventType.ENTRY, instanceID, instanceName)
-                self:PrintStatus()
+                self:PrintStatus(self:GetStatusData(), false)
             elseif currentInstanceID ~= instanceID then
                 -- Entry into a different dungeon (shouldn't happen often)
                 self:SetCurrentInstance(instanceID, instanceName)
                 self:IncrementCounter()
                 self:LogEvent(self.EventType.ENTRY, instanceID, instanceName)
-                self:PrintStatus()
+                self:PrintStatus(self:GetStatusData(), false)
             else
                 -- Re-entry into the same dungeon (via portal)
                 self:LogEvent(self.EventType.REENTRY, instanceID, instanceName)
@@ -97,42 +83,24 @@ function FDC:OnGroupLeft()
     self:ClearCurrentInstance()
 end
 
--- Format timestamp for log display
-function FDC:FormatLogTime(timestamp)
-    return date("%H:%M:%S", timestamp)
-end
-
--- Print log entries from last H hours
-function FDC:PrintLog(hours)
-    local L = self.L
+-- Get log data for display
+-- Returns: {hours, entries[], isEmpty}
+function FDC:GetLogData(hours)
     local log = self:GetLog()
     local cutoff = time() - (hours * 3600)
-    local count = 0
-    
-    print(string.format(L.LOG_HEADER, hours))
-    print(L.LOG_COLUMNS)
-    
+    local entries = {}
+
     for _, entry in ipairs(log) do
         if entry.time >= cutoff then
-            local instanceDisplay
-            if entry.instanceName then
-                instanceDisplay = entry.instanceName .. " (ID:" .. (entry.instanceID or "?") .. ")"
-            else
-                instanceDisplay = "ID:" .. (entry.instanceID or "?")
-            end
-            print(string.format("%s, %s, %s, %s",
-                self:FormatLogTime(entry.time),
-                entry.event,
-                entry.character,
-                instanceDisplay
-            ))
-            count = count + 1
+            table.insert(entries, entry)
         end
     end
-    
-    if count == 0 then
-        print(L.LOG_NO_ENTRIES)
-    end
+
+    return {
+        hours = hours,
+        entries = entries,
+        isEmpty = (#entries == 0)
+    }
 end
 
 -- Parse statistics arguments: [H1,H2,...] [instanceID]
@@ -140,7 +108,7 @@ end
 function FDC:ParseStatArgs(args)
     local hours = {}
     local instanceID = nil
-    
+
     -- Split args by space
     for part in args:gmatch("%S+") do
         if part:find(",") then
@@ -162,7 +130,7 @@ function FDC:ParseStatArgs(args)
             end
         end
     end
-    
+
     return hours, instanceID
 end
 
@@ -170,7 +138,7 @@ end
 function FDC:CountEntries(log, character, hoursAgo, instanceID)
     local cutoff = hoursAgo and (time() - hoursAgo * 3600) or 0
     local count = 0
-    
+
     for _, entry in ipairs(log) do
         if entry.event == self.EventType.ENTRY then
             if entry.character == character then
@@ -182,7 +150,7 @@ function FDC:CountEntries(log, character, hoursAgo, instanceID)
             end
         end
     end
-    
+
     return count
 end
 
@@ -190,7 +158,7 @@ end
 function FDC:GetCharactersFromLog(log, instanceID)
     local characters = {}
     local seen = {}
-    
+
     for _, entry in ipairs(log) do
         if entry.event == self.EventType.ENTRY then
             if instanceID == nil or entry.instanceID == instanceID then
@@ -201,60 +169,51 @@ function FDC:GetCharactersFromLog(log, instanceID)
             end
         end
     end
-    
+
     return characters
 end
 
--- Print statistics
-function FDC:PrintStatistics(args)
-    local L = self.L
+-- Get statistics data for display
+-- Returns: {hours[], instanceID, characters[], totals, isEmpty}
+function FDC:GetStatisticsData(args)
     local hours, instanceID = self:ParseStatArgs(args or "")
     local log = self:GetLog()
-    local characters = self:GetCharactersFromLog(log, instanceID)
-    
-    -- Build header
-    local header = L.STAT_CHARACTER .. ", " .. L.STAT_TOTAL
-    for _, h in ipairs(hours) do
-        header = header .. ", " .. h .. "h"
-    end
-    
-    -- Print header
-    if instanceID then
-        print(string.format(L.STAT_HEADER_INSTANCE, instanceID))
-    else
-        print(L.STAT_HEADER)
-    end
-    print(header)
-    
-    -- Totals
+    local characterNames = self:GetCharactersFromLog(log, instanceID)
+
+    -- Build character data
+    local characters = {}
     local totalAll = 0
     local totalByHours = {}
     for i = 1, #hours do
         totalByHours[i] = 0
     end
-    
-    -- Print per character
-    for _, character in ipairs(characters) do
-        local total = self:CountEntries(log, character, nil, instanceID)
+
+    for _, charName in ipairs(characterNames) do
+        local total = self:CountEntries(log, charName, nil, instanceID)
         totalAll = totalAll + total
-        
-        local line = character .. ", " .. total
+
+        local hourCounts = {}
         for i, h in ipairs(hours) do
-            local count = self:CountEntries(log, character, h, instanceID)
+            local count = self:CountEntries(log, charName, h, instanceID)
             totalByHours[i] = totalByHours[i] + count
-            line = line .. ", " .. count
+            table.insert(hourCounts, count)
         end
-        print(line)
+
+        table.insert(characters, {
+            name = charName,
+            total = total,
+            hourCounts = hourCounts
+        })
     end
-    
-    -- Print total row
-    if #characters > 0 then
-        local totalLine = L.STAT_TOTAL .. ", " .. totalAll
-        for i = 1, #hours do
-            totalLine = totalLine .. ", " .. totalByHours[i]
-        end
-        print(totalLine)
-    else
-        print(L.STAT_NO_ENTRIES)
-    end
+
+    return {
+        hours = hours,
+        instanceID = instanceID,
+        characters = characters,
+        totals = {
+            total = totalAll,
+            hourCounts = totalByHours
+        },
+        isEmpty = (#characters == 0)
+    }
 end

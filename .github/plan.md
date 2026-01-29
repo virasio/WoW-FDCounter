@@ -70,10 +70,14 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 4. Instance ID detection: standalone number > 100
 5. Commit to `develop`
 
-#### 5.4: Refactoring and Pipeline
-1. Code refactoring (TBD)
-2. Pipeline configuration (TBD)
-3. Merge → tag `v0.2.0`
+#### 5.4: Refactoring and Pipeline ✅
+1. Separate Logic and Output layers:
+   - `Logic.lua` — returns data objects, no output
+   - `Output.lua` — formatting and chat output, uses localization
+2. Data structures: `StatusData`, `LogData`, `StatisticsData`
+3. Commands flow: Commands → Logic (data) → Output (display)
+4. Pipeline configuration
+5. Merge → tag `v0.2.0`
 
 ### Stage 6: UI Panel
 1. Draggable frame with text `"FD: N"`

@@ -12,5 +12,6 @@ Locales.lua
 Core.lua
 Storage.lua
 Logic.lua
+Output.lua
 Events.lua
 Commands.lua
