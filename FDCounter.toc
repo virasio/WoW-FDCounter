@@ -8,4 +8,10 @@
 ## X-Curse-Project-ID: 1447993
 ## X-Wago-ID: qKQm8aKx
 
-FDCounter.lua
+Locales.lua
+Core.lua
+Storage.lua
+Logic.lua
+Output.lua
+Events.lua
+Commands.lua

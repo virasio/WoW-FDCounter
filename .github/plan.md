@@ -40,13 +40,44 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 3. Add secrets to GitHub: `CF_API_KEY`, `WAGO_API_TOKEN`
 4. **Merge to `main`** — first working release  → Tag `v0.1.0` → auto-publish
 
-### Stage 5: Extended Log
-1. Structure: `FDCounterDB.log = { {time, instance, character, realm}, ... }`
-2. Log each entry with full information
-3. `/fdcounter log [H]` — show entries from last H hours (default: 24)
-4. `/fdcounter help` — show available commands
-5. Filter by instance, character
-6. Merge → tag `v0.2.0`
+### Stage 4.1: Code Refactoring ✅
+1. Split monolithic `FDCounter.lua` into modules:
+   - `Core.lua` — namespace, version, constants
+   - `Storage.lua` — SavedVariables, data persistence
+   - `Logic.lua` — business logic, event handlers
+   - `Events.lua` — event registration and dispatch
+   - `Commands.lua` — slash command handling
+2. Add `/fdcounter help` command
+3. Single `FDC:Initialize()` entry point
+4. Commit to `develop`
+
+### Stage 5: Extended Log and Statistics
+#### 5.1: Event Logging ✅
+1. Log structure: `FDCounterDB.log = { {time, event, character, instanceID, instanceName}, ... }`
+2. Events: `entry`, `exit`, `reentry`, `complete`
+3. Character format: `"Name-Realm"`
+4. Clear log on daily reset
+5. Commit to `develop`
+
+#### 5.2: Log Output ✅
+1. `/fdcounter log [H]` — show events from last H hours (default: 24)
+2. Commit to `develop`
+
+#### 5.3: Statistics ✅
+1. `/fdcounter stat [H1,H2,...] [instanceID]` — CSV-style statistics
+2. Output: character, total, count per each H period
+3. Last row: Total across all characters
+4. Instance ID detection: standalone number > 100
+5. Commit to `develop`
+
+#### 5.4: Refactoring and Pipeline ✅
+1. Separate Logic and Output layers:
+   - `Logic.lua` — returns data objects, no output
+   - `Output.lua` — formatting and chat output, uses localization
+2. Data structures: `StatusData`, `LogData`, `StatisticsData`
+3. Commands flow: Commands → Logic (data) → Output (display)
+4. Pipeline configuration
+5. Merge → tag `v0.2.0`
 
 ### Stage 6: UI Panel
 1. Draggable frame with text `"FD: N"`
