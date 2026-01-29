@@ -6,3 +6,6 @@
 
 # BigWigsMods packager output
 .release/
+
+# Temp files
+.tmp/
