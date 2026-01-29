@@ -1,7 +1,5 @@
 package-as: FDCounter
 
-enable-toc-creation: yes
-
 plain-copy:
   - Locales.lua
 
