@@ -52,6 +52,22 @@ local L = {
     -- Input dialog
     INPUT_DIALOG_TITLE = "Set Counter",
     INPUT_DIALOG_LABEL = "Enter value (0-99):",
+
+    -- Log window
+    BTN_LOG_TOOLTIP = "Show event log",
+    LOG_WINDOW_TITLE = "FDCounter Log",
+    LOG_TAB_RAW = "RAW",
+    LOG_TAB_TABLE = "Table",
+    LOG_TAB_STATS = "Stats",
+
+    -- Event names (localized)
+    EVENT_ENTRY = "Entry",
+    EVENT_EXIT = "Exit",
+    EVENT_REENTRY = "Re-entry",
+    EVENT_COMPLETE = "Complete",
+
+    -- Table view header
+    LOG_TABLE_HEADER = "Time      Event     Character            Instance",
 }
 
 -- Store in namespace

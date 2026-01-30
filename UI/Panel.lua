@@ -53,16 +53,16 @@ local function CreateSideButtons(frame)
     )
     frame.exitBtn:SetPoint("TOPLEFT", frame, "TOPRIGHT", UI.BUTTON_GAP, 0)
 
-    -- Button 2 (bottom): Log window (TODO)
-    -- frame.logBtn = UI.CreateIconButton(
-    --     frame,
-    --     "common-icon-undo",
-    --     L.BTN_LOG_TOOLTIP,
-    --     function()
-    --         FDC:ShowLogWindow()
-    --     end
-    -- )
-    -- frame.logBtn:SetPoint("TOP", frame.exitBtn, "BOTTOM", 0, -UI.BUTTON_GAP)
+    -- Button 2 (bottom): Log window
+    frame.logBtn = UI.CreateIconButton(
+        frame,
+        "common-icon-undo",
+        L.BTN_LOG_TOOLTIP,
+        function()
+            FDC:ToggleLogWindow()
+        end
+    )
+    frame.logBtn:SetPoint("TOP", frame.exitBtn, "BOTTOM", 0, -UI.BUTTON_GAP)
 end
 
 -- Create inline buttons container and buttons

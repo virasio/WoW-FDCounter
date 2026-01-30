@@ -104,10 +104,12 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 2. Eliminated backdrop duplication (4x → 1x via `UI.ApplyBackdrop`)
 3. Commit to `develop`
 
-#### 6.4: Log and Statistics Window (planned)
-1. UI window for viewing event log
-2. UI window for viewing statistics
-3. Merge → tag `v1.0.0`
+#### 6.4: Log and Statistics Window ✅
+1. Log window with RAW/Table/Stats view tabs
+2. RAW view: CSV format (timestamp,event,character,instanceID)
+3. Table view: localized table with formatted time and event names
+4. Stats view: statistics with 1h, 6h, 24h columns
+5. Commit to `develop`
 
 ## Technical Notes
 

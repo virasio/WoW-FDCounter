@@ -14,6 +14,10 @@ FDC.UI.BUTTON_SIZE = 44
 FDC.UI.BUTTON_GAP = 0
 FDC.UI.INLINE_BUTTON_SIZE = 20
 
+-- Log window dimensions
+FDC.UI.LOG_WINDOW_WIDTH = 400
+FDC.UI.LOG_WINDOW_HEIGHT = 300
+
 -- Standard backdrop configuration (reusable)
 FDC.UI.STANDARD_BACKDROP = {
     bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
