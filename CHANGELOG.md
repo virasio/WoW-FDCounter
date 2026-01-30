@@ -6,7 +6,8 @@
 - Draggable UI panel showing entry count and time until reset
 - `/fdcounter show` — show UI panel
 - `/fdcounter hide` — hide UI panel
-- Quick action buttons on panel: leave dungeon, reset counter
+- Quick action button: leave dungeon
+- Inline counter editing on hover: reset, decrease, increase, manual input
 - Panel position saved between sessions
 
 ## 0.2.0

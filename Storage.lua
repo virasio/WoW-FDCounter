@@ -54,6 +54,23 @@ function FDC:GetCount()
     return FDCounterDB.count
 end
 
+-- Set counter value (0-99, for manual input)
+function FDC:SetCount(value)
+    FDCounterDB.count = math.max(0, math.min(99, value))
+end
+
+-- Increment counter (no upper limit)
+function FDC:IncrementCounterManual()
+    FDCounterDB.count = FDCounterDB.count + 1
+end
+
+-- Decrement counter (min 0)
+function FDC:DecrementCounter()
+    if FDCounterDB.count > 0 then
+        FDCounterDB.count = FDCounterDB.count - 1
+    end
+end
+
 -- Get current instance ID being tracked
 function FDC:GetCurrentInstanceID()
     return FDCounterDB.currentInstanceID

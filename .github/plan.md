@@ -90,9 +90,10 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 6. Timer updates every minute
 7. Commit to `develop`
 
-#### 6.2: Counter Editing (planned)
-1. Buttons for manual increment/decrement of counter
-2. UI for direct value input
+#### 6.2: Counter Editing ✅
+1. Inline buttons on hover: reset, minus, plus, manual input
+2. Input dialog with validation (0-99)
+3. Commit to `develop`
 
 #### 6.3: Log and Statistics Window (planned)
 1. UI window for viewing event log

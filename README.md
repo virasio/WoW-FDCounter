@@ -11,7 +11,8 @@ Follower Dungeons have a daily entry limit per account. This addon automatically
 
 ## Features
 
-- **Draggable UI panel** — shows entry count and time until reset, with quick action buttons
+- **Draggable UI panel** — shows entry count and time until reset, with inline counter editing on hover
+- **Quick leave button** — teleport out and leave group in one click
 - **Automatic detection** — counts entries when you zone into a Follower Dungeon
 - **Persistent counter** — saves between sessions
 - **Auto-reset** — resets at server daily reset time

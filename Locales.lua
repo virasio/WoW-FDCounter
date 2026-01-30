@@ -45,6 +45,13 @@ local L = {
     -- Panel buttons
     BTN_EXIT_TOOLTIP = "Leave Follower Dungeon",
     BTN_RESET_TOOLTIP = "Reset counter",
+    BTN_MINUS_TOOLTIP = "Decrease counter",
+    BTN_PLUS_TOOLTIP = "Increase counter",
+    BTN_INPUT_TOOLTIP = "Set counter value",
+
+    -- Input dialog
+    INPUT_DIALOG_TITLE = "Set Counter",
+    INPUT_DIALOG_LABEL = "Enter value (0-99):",
 }
 
 -- Store in namespace
