@@ -95,7 +95,16 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 2. Input dialog with validation (0-99)
 3. Commit to `develop`
 
-#### 6.3: Log and Statistics Window (planned)
+#### 6.3: UI Code Refactoring ✅
+1. Split monolithic `UI.lua` (438 lines) into modular structure:
+   - `UI/UIConstants.lua` — sizes, backdrop configurations
+   - `UI/UIWidgets.lua` — button factories, helper functions
+   - `UI/InputDialog.lua` — input dialog creation
+   - `UI/Panel.lua` — main panel with local helper functions
+2. Eliminated backdrop duplication (4x → 1x via `UI.ApplyBackdrop`)
+3. Commit to `develop`
+
+#### 6.4: Log and Statistics Window (planned)
 1. UI window for viewing event log
 2. UI window for viewing statistics
 3. Merge → tag `v1.0.0`
