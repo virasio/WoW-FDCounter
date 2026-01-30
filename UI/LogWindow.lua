@@ -135,6 +135,18 @@ local function UpdateTabStates(frame)
     end
 end
 
+-- Update editBox width to match scroll frame
+local function UpdateEditBoxWidth(frame)
+    local scrollWidth = frame.scrollFrame:GetWidth()
+    frame.editBox:SetWidth(math.max(1, scrollWidth - 16))
+end
+
+-- Save window position and size
+local function SaveWindowState(frame)
+    FDC:SaveLogWindowPosition(frame:GetPoint())
+    FDC:SaveLogWindowSize(frame:GetWidth(), frame:GetHeight())
+end
+
 -- Create the log window
 local function CreateLogWindow()
     local L = FDC.L
@@ -146,20 +158,25 @@ local function CreateLogWindow()
     frame:SetFrameStrata("HIGH")
     frame:EnableMouse(true)
     frame:SetMovable(true)
-    frame:RegisterForDrag("LeftButton")
-    frame:SetScript("OnDragStart", frame.StartMoving)
-    frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+    frame:SetResizable(true)
+    frame:SetResizeBounds(
+        UI.LOG_WINDOW_MIN_WIDTH, UI.LOG_WINDOW_MIN_HEIGHT,
+        UI.LOG_WINDOW_MAX_WIDTH, UI.LOG_WINDOW_MAX_HEIGHT
+    )
     frame:Hide()
 
-    -- Title bar
+    -- Title bar (drag area)
     frame.titleBar = CreateFrame("Frame", nil, frame)
     frame.titleBar:SetPoint("TOPLEFT", 4, -4)
-    frame.titleBar:SetPoint("TOPRIGHT", -4, -4)
+    frame.titleBar:SetPoint("TOPRIGHT", -24, -4)
     frame.titleBar:SetHeight(20)
     frame.titleBar:EnableMouse(true)
     frame.titleBar:RegisterForDrag("LeftButton")
     frame.titleBar:SetScript("OnDragStart", function() frame:StartMoving() end)
-    frame.titleBar:SetScript("OnDragStop", function() frame:StopMovingOrSizing() end)
+    frame.titleBar:SetScript("OnDragStop", function()
+        frame:StopMovingOrSizing()
+        SaveWindowState(frame)
+    end)
 
     -- Title text
     frame.titleText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -193,7 +210,7 @@ local function CreateLogWindow()
     -- Scroll frame
     local scrollFrame = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
     scrollFrame:SetPoint("TOPLEFT", 8, -50)
-    scrollFrame:SetPoint("BOTTOMRIGHT", -28, 8)
+    scrollFrame:SetPoint("BOTTOMRIGHT", -28, 20)
     frame.scrollFrame = scrollFrame
 
     -- Edit box (read-only, copyable)
@@ -221,6 +238,38 @@ local function CreateLogWindow()
     end)
     scrollFrame:SetScrollChild(editBox)
     frame.editBox = editBox
+
+    -- Resize handle (bottom-right corner)
+    local resizeBtn = CreateFrame("Button", nil, frame)
+    resizeBtn:SetSize(16, 16)
+    resizeBtn:SetPoint("BOTTOMRIGHT", -4, 4)
+    resizeBtn:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+    resizeBtn:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+    resizeBtn:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+    resizeBtn:SetScript("OnMouseDown", function()
+        frame:StartSizing("BOTTOMRIGHT")
+    end)
+    resizeBtn:SetScript("OnMouseUp", function()
+        frame:StopMovingOrSizing()
+        SaveWindowState(frame)
+    end)
+    frame.resizeBtn = resizeBtn
+
+    -- Update editBox width when frame size changes
+    frame:SetScript("OnSizeChanged", function()
+        UpdateEditBoxWidth(frame)
+    end)
+
+    -- Restore saved position and size
+    local pos = FDC:GetLogWindowPosition()
+    if pos then
+        frame:ClearAllPoints()
+        frame:SetPoint(pos[1], UIParent, pos[3], pos[4], pos[5])
+    end
+    local size = FDC:GetLogWindowSize()
+    if size then
+        frame:SetSize(size[1], size[2])
+    end
 
     return frame
 end

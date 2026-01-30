@@ -12,6 +12,8 @@ local defaults = {
     helpShown = false,
     panelPosition = nil,  -- {point, relativeTo, relativePoint, x, y}
     panelVisible = true,
+    logWindowPosition = nil,  -- {point, relativeTo, relativePoint, x, y}
+    logWindowSize = nil,  -- {width, height}
 }
 
 -- Get current character key "Name-Realm"
@@ -152,4 +154,24 @@ end
 -- Set panel visibility
 function FDC:SetPanelVisible(visible)
     FDCounterDB.panelVisible = visible
+end
+
+-- Get log window position
+function FDC:GetLogWindowPosition()
+    return FDCounterDB.logWindowPosition
+end
+
+-- Save log window position
+function FDC:SaveLogWindowPosition(point, relativeTo, relativePoint, x, y)
+    FDCounterDB.logWindowPosition = {point, relativeTo, relativePoint, x, y}
+end
+
+-- Get log window size
+function FDC:GetLogWindowSize()
+    return FDCounterDB.logWindowSize
+end
+
+-- Save log window size
+function FDC:SaveLogWindowSize(width, height)
+    FDCounterDB.logWindowSize = {width, height}
 end
