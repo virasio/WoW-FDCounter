@@ -6,8 +6,9 @@ local ADDON_NAME, FDC = ...
 FDC.UI = {}
 
 -- Panel dimensions
-FDC.UI.PANEL_WIDTH = 88
+FDC.UI.PANEL_WIDTH = 96
 FDC.UI.PANEL_HEIGHT = 88
+FDC.UI.PANEL_HEADER_HEIGHT = 28
 
 -- Button dimensions
 FDC.UI.BUTTON_SIZE = 44

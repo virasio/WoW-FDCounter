@@ -11,15 +11,17 @@ Follower Dungeons have a daily entry limit per account. This addon automatically
 
 ## Features
 
-- **Draggable UI panel** — shows entry count and time until reset, with inline counter editing on hover
-- **Quick leave button** — teleport out and leave group in one click
+- **Draggable UI panel** — shows entry count and time until reset, with inline counter editing on hover and close button
+- **Quick action buttons** — leave dungeon, open log window
+- **Log window** — resizable window with three view modes:
+  - **Statistics** — table with dynamic hour columns (+/- to add/remove), instance filter
+  - **Log Table** — event log with character and instance filters
+  - **Raw Log** — CSV format for copying (timestamp,event,character,instanceID)
 - **Automatic detection** — counts entries when you zone into a Follower Dungeon
 - **Persistent counter** — saves between sessions
 - **Auto-reset** — resets at server daily reset time
 - **Duplicate protection** — won't count `/reload` or portal re-entry as new entry
-- **Event log** — tracks entries, exits, re-entries, and completions with timestamps
-- **Multi-character statistics** — CSV-style output with customizable time periods
-- **Instance filtering** — view stats for specific dungeons by ID
+- **Localized instance names** — uses `GetRealZoneText()` for current client language
 
 ## Commands
 

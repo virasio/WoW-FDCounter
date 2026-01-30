@@ -111,7 +111,7 @@ end
 -- Create a tab button
 local function CreateTabButton(parent, text, viewMode, onClick)
     local btn = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
-    btn:SetSize(50, 20)
+    btn:SetSize(70, 20)
     btn:SetText(text)
     btn.viewMode = viewMode
 

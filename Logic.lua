@@ -83,9 +83,8 @@ end
 -- Handle group left event
 function FDC:OnGroupLeft()
     local currentInstanceID = self:GetCurrentInstanceID()
-    local currentInstanceName = self:GetCurrentInstanceName()
     if currentInstanceID ~= nil then
-        self:LogEvent(self.EventType.COMPLETE, currentInstanceID, currentInstanceName)
+        self:LogEvent(self.EventType.COMPLETE, currentInstanceID)
     end
     self:ClearCurrentInstance()
 end

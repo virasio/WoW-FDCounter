@@ -30,17 +30,16 @@ local L = {
     
     -- Statistics command
     STAT_HEADER = "FDCounter: Statistics",
-    STAT_HEADER_INSTANCE = "FDCounter: Statistics (Instance ID:%d)",
+    STAT_HEADER_INSTANCE = "FDCounter: Statistics (Instance ID: %d)",
     STAT_TOTAL = "Total",
     STAT_CHARACTER = "Character",
     STAT_NO_ENTRIES = "  (no entries)",
 
     -- UI Panel
-    PANEL_TITLE = "FD Visited:",
+    PANEL_HEADER = "Follower Dungeons",
+    PANEL_TITLE = "Visited:",
     PANEL_RESET_LABEL = "reset in:",
     PANEL_TIME_FORMAT = "%d:%02d",  -- H:mm format
-    PANEL_SHOWN = "FDCounter: Panel shown",
-    PANEL_HIDDEN = "FDCounter: Panel hidden",
 
     -- Panel buttons
     BTN_EXIT_TOOLTIP = "Leave Follower Dungeon",
@@ -56,18 +55,17 @@ local L = {
     -- Log window
     BTN_LOG_TOOLTIP = "Show event log",
     LOG_WINDOW_TITLE = "FDCounter Log",
-    LOG_TAB_RAW = "RAW",
-    LOG_TAB_TABLE = "Table",
-    LOG_TAB_STATS = "Stats",
+    LOG_TAB_RAW = "Raw Log",
+    LOG_TAB_TABLE = "Log Table",
+    LOG_TAB_STATS = "Statistics",
 
     -- Event names (localized)
     EVENT_ENTRY = "Entry",
     EVENT_EXIT = "Exit",
     EVENT_REENTRY = "Re-entry",
-    EVENT_COMPLETE = "Complete",
+    EVENT_COMPLETE = "Completed",
 
     -- Table view
-    LOG_TABLE_HEADER = "Time      Event     Character            Instance",
     LOG_FILTER_ALL = "All",
     LOG_FILTER_CHARACTER = "Character:",
     LOG_FILTER_INSTANCE = "Instance:",

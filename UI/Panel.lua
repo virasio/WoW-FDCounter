@@ -15,11 +15,74 @@ local function FormatPanelTime(seconds)
     return string.format(FDC.L.PANEL_TIME_FORMAT, hours, minutes)
 end
 
+-- Create header bar above panel
+local function CreatePanelHeader(frame)
+    local L = FDC.L
+
+    local header = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+    header:SetSize(UI.PANEL_WIDTH + UI.BUTTON_SIZE, UI.PANEL_HEADER_HEIGHT)
+    header:SetPoint("BOTTOMLEFT", frame, "TOPLEFT", 0, 0)
+    UI.ApplyBackdrop(header, false)
+
+    -- Header text (centered)
+    header.text = header:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    header.text:SetPoint("CENTER", 0, 0)
+    header.text:SetText(L.PANEL_HEADER)
+
+    -- Close button (hidden by default, shown on hover)
+    header.closeBtn = CreateFrame("Button", nil, header, "BackdropTemplate")
+    header.closeBtn:SetSize(24, 24)
+    header.closeBtn:SetPoint("RIGHT", -2, 0)
+    UI.ApplyBackdrop(header.closeBtn, false)
+
+    header.closeBtn.icon = header.closeBtn:CreateTexture(nil, "ARTWORK")
+    header.closeBtn.icon:SetSize(12, 12)
+    header.closeBtn.icon:SetPoint("CENTER", 0, 0)
+    header.closeBtn.icon:SetTexture("Interface\\Buttons\\UI-StopButton")
+
+    header.closeBtn.highlight = header.closeBtn:CreateTexture(nil, "HIGHLIGHT")
+    header.closeBtn.highlight:SetPoint("TOPLEFT", 4, -4)
+    header.closeBtn.highlight:SetPoint("BOTTOMRIGHT", -4, 4)
+    header.closeBtn.highlight:SetTexture("Interface\\Buttons\\ButtonHilight-Square")
+    header.closeBtn.highlight:SetBlendMode("ADD")
+
+    header.closeBtn:SetScript("OnClick", function()
+        FDC:HidePanel()
+    end)
+    header.closeBtn:Hide()
+
+    -- Show/hide close button on hover
+    header:SetScript("OnEnter", function()
+        header.closeBtn:Show()
+    end)
+    header:SetScript("OnLeave", function()
+        if not header:IsMouseOver() then
+            header.closeBtn:Hide()
+        end
+    end)
+    header.closeBtn:SetScript("OnLeave", function()
+        if not header:IsMouseOver() then
+            header.closeBtn:Hide()
+        end
+    end)
+
+    -- Make header draggable (moves the main frame)
+    header:EnableMouse(true)
+    header:RegisterForDrag("LeftButton")
+    header:SetScript("OnDragStart", function() frame:StartMoving() end)
+    header:SetScript("OnDragStop", function()
+        frame:StopMovingOrSizing()
+        FDC:SavePanelPosition(frame:GetPoint())
+    end)
+
+    frame.header = header
+end
+
 -- Create panel text elements
 local function CreatePanelText(frame)
     local L = FDC.L
 
-    -- Line 1: label "FD Visited:"
+    -- Line 1: label "Visited:"
     frame.titleText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     frame.titleText:SetPoint("TOP", 0, -12)
     frame.titleText:SetText(L.PANEL_TITLE)
@@ -56,7 +119,7 @@ local function CreateSideButtons(frame)
     -- Button 2 (bottom): Log window
     frame.logBtn = UI.CreateIconButton(
         frame,
-        "common-icon-undo",
+        "common-icon-visual",
         L.BTN_LOG_TOOLTIP,
         function()
             FDC:ToggleLogWindow()
@@ -70,10 +133,10 @@ local function CreateInlineButtons(frame)
     local L = FDC.L
 
     -- Inline buttons container (for hover state)
+    -- 4 buttons * 20px = 80px total width, centered
     frame.inlineButtons = CreateFrame("Frame", nil, frame)
-    frame.inlineButtons:SetPoint("BOTTOMLEFT", 4, 4)
-    frame.inlineButtons:SetPoint("BOTTOMRIGHT", -4, 4)
-    frame.inlineButtons:SetHeight(UI.INLINE_BUTTON_SIZE)
+    frame.inlineButtons:SetSize(UI.INLINE_BUTTON_SIZE * 4, UI.INLINE_BUTTON_SIZE)
+    frame.inlineButtons:SetPoint("BOTTOM", 0, 4)
     frame.inlineButtons:Hide()
 
     -- Inline button 1: Reset
@@ -168,6 +231,7 @@ function FDC:CreatePanel()
     end)
 
     -- Create UI components
+    CreatePanelHeader(frame)
     CreatePanelText(frame)
     CreateSideButtons(frame)
     CreateInlineButtons(frame)
@@ -242,7 +306,6 @@ function FDC:ShowPanel()
     self:UpdatePanel()
     self.panel:Show()
     self:SetPanelVisible(true)
-    print(self.L.PANEL_SHOWN)
 end
 
 -- Hide the panel
@@ -250,5 +313,4 @@ function FDC:HidePanel()
     if not self.panel then return end
     self.panel:Hide()
     self:SetPanelVisible(false)
-    print(self.L.PANEL_HIDDEN)
 end

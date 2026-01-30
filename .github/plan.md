@@ -111,6 +111,19 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 4. Stats view: statistics with 1h, 6h, 24h columns
 5. Commit to `develop`
 
+#### 6.5: Log Window Improvements ✅
+1. Resizable window (drag bottom-right corner), draggable by title bar
+2. Table view: real table with character/instance dropdown filters
+3. Stats view: real table with dynamic hour columns (+/- buttons), instance filter
+4. Instance names via `GetRealZoneText(instanceID)` for localization
+5. Commit to `develop`
+
+#### 6.6: Panel Header ✅
+1. Header bar "Follower Dungeons" above panel
+2. Close button appears on header hover
+3. Panel width 96px, header height 28px
+4. Merge → tag `v1.0.0`
+
 ## Technical Notes
 
 - **Interface version:** `120000` (Midnight 12.0.0)
