@@ -75,6 +75,11 @@ local L = {
     LOG_COL_EVENT = "Event",
     LOG_COL_CHARACTER = "Character",
     LOG_COL_INSTANCE = "Instance",
+
+    -- Stats view
+    STATS_ADD_HOUR = "+",
+    STATS_REMOVE_HOUR = "-",
+    STATS_HOUR_PROMPT = "Hours:",
 }
 
 -- Store in namespace

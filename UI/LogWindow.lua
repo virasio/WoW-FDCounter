@@ -13,11 +13,15 @@ local VIEW_STATS = 3
 -- Current state
 local currentView = VIEW_RAW
 local tableFilters = { character = nil, instance = nil }
+local statsFilters = { instance = nil }
+local statsHours = { 1, 6, 24 }  -- Default hour columns
 
--- Table row pool
+-- Table row pools
 local tableRowPool = {}
+local statsRowPool = {}
 local TABLE_ROW_HEIGHT = 16
 local TABLE_HEADER_HEIGHT = 20
+local STATS_COL_WIDTH = 40  -- Width for hour columns
 
 -- Event name localization mapping
 local function GetLocalizedEventName(event)
@@ -46,43 +50,6 @@ local function FormatRawLog(entries)
             entry.instanceID or ""
         ))
     end
-    return table.concat(lines, "\n")
-end
-
--- Format statistics data (text mode for Stats tab)
-local function FormatStatistics(statsData)
-    local L = FDC.L
-
-    local lines = {}
-
-    -- Header
-    local header = L.STAT_CHARACTER .. ", " .. L.STAT_TOTAL
-    for _, h in ipairs(statsData.hours) do
-        header = header .. ", " .. h .. "h"
-    end
-    table.insert(lines, header)
-
-    if statsData.isEmpty then
-        table.insert(lines, L.STAT_NO_ENTRIES)
-        return table.concat(lines, "\n")
-    end
-
-    -- Per character rows
-    for _, charData in ipairs(statsData.characters) do
-        local line = charData.name .. ", " .. charData.total
-        for _, count in ipairs(charData.hourCounts) do
-            line = line .. ", " .. count
-        end
-        table.insert(lines, line)
-    end
-
-    -- Total row
-    local totalLine = L.STAT_TOTAL .. ", " .. statsData.totals.total
-    for _, count in ipairs(statsData.totals.hourCounts) do
-        totalLine = totalLine .. ", " .. count
-    end
-    table.insert(lines, totalLine)
-
     return table.concat(lines, "\n")
 end
 
@@ -437,42 +404,264 @@ local function CreateTableView(parent)
     return container
 end
 
--- Create Stats view container (text-based for now, will be table later)
+-- Get or create stats row from pool
+local function GetStatsRow(parent, index)
+    if statsRowPool[index] then
+        statsRowPool[index]:Show()
+        return statsRowPool[index]
+    end
+
+    local row = CreateFrame("Frame", nil, parent)
+    row:SetHeight(TABLE_ROW_HEIGHT)
+
+    -- Alternating background
+    row.bg = row:CreateTexture(nil, "BACKGROUND")
+    row.bg:SetAllPoints()
+    row.bg:SetColorTexture(1, 1, 1, index % 2 == 0 and 0.05 or 0)
+
+    -- Character name column (wider)
+    row.charText = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.charText:SetPoint("LEFT", 4, 0)
+    row.charText:SetWidth(130)
+    row.charText:SetJustifyH("LEFT")
+
+    -- Total column
+    row.totalText = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.totalText:SetPoint("LEFT", 138, 0)
+    row.totalText:SetWidth(STATS_COL_WIDTH)
+    row.totalText:SetJustifyH("CENTER")
+
+    -- Hour columns (created dynamically)
+    row.hourTexts = {}
+
+    statsRowPool[index] = row
+    return row
+end
+
+-- Hide all stats rows
+local function HideAllStatsRows()
+    for _, row in pairs(statsRowPool) do
+        row:Hide()
+    end
+end
+
+-- Create stats table header (will be rebuilt when hours change)
+local function CreateStatsHeader(parent)
+    local L = FDC.L
+
+    local header = CreateFrame("Frame", nil, parent)
+    header:SetHeight(TABLE_HEADER_HEIGHT)
+    header:SetPoint("TOPLEFT", 0, 0)
+    header:SetPoint("TOPRIGHT", 0, 0)
+
+    header.bg = header:CreateTexture(nil, "BACKGROUND")
+    header.bg:SetAllPoints()
+    header.bg:SetColorTexture(0.2, 0.2, 0.2, 0.8)
+
+    -- Character column
+    header.charText = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    header.charText:SetPoint("LEFT", 4, 0)
+    header.charText:SetText(L.STAT_CHARACTER)
+
+    -- Total column
+    header.totalText = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    header.totalText:SetPoint("LEFT", 138, 0)
+    header.totalText:SetText(L.STAT_TOTAL)
+
+    -- Hour column headers (created dynamically)
+    header.hourTexts = {}
+
+    return header
+end
+
+-- Update stats header columns
+local function UpdateStatsHeaderColumns(header)
+    -- Hide existing hour texts
+    for _, text in ipairs(header.hourTexts) do
+        text:Hide()
+    end
+
+    -- Create/show hour column headers
+    for i, h in ipairs(statsHours) do
+        if not header.hourTexts[i] then
+            header.hourTexts[i] = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        end
+        local text = header.hourTexts[i]
+        text:SetPoint("LEFT", 138 + STATS_COL_WIDTH * i, 0)
+        text:SetText(h .. "h")
+        text:Show()
+    end
+end
+
+-- Update stats row columns
+local function UpdateStatsRowColumns(row, charData)
+    row.charText:SetText(charData.name)
+    row.totalText:SetText(tostring(charData.total))
+
+    -- Hide existing hour texts
+    for _, text in ipairs(row.hourTexts) do
+        text:Hide()
+    end
+
+    -- Create/show hour values
+    for i, count in ipairs(charData.hourCounts) do
+        if not row.hourTexts[i] then
+            row.hourTexts[i] = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+            row.hourTexts[i]:SetWidth(STATS_COL_WIDTH)
+            row.hourTexts[i]:SetJustifyH("CENTER")
+        end
+        local text = row.hourTexts[i]
+        text:SetPoint("LEFT", 138 + STATS_COL_WIDTH * i, 0)
+        text:SetText(tostring(count))
+        text:Show()
+    end
+end
+
+-- Create Stats view container
 local function CreateStatsView(parent)
+    local L = FDC.L
     local container = CreateFrame("Frame", nil, parent)
     container:SetPoint("TOPLEFT", 8, -50)
     container:SetPoint("BOTTOMRIGHT", -8, 20)
 
-    -- Scroll frame
-    local scrollFrame = CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", 0, 0)
+    -- Filter/control row
+    local filterRow = CreateFrame("Frame", nil, container)
+    filterRow:SetPoint("TOPLEFT", 0, 0)
+    filterRow:SetPoint("TOPRIGHT", 0, 0)
+    filterRow:SetHeight(28)
+
+    -- Instance filter label
+    local instLabel = filterRow:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    instLabel:SetPoint("LEFT", 0, 0)
+    instLabel:SetText(L.LOG_FILTER_INSTANCE)
+
+    -- Instance dropdown
+    container.instDropdown = CreateDropdown(filterRow, "FDCStatsInstDropdown", 120)
+    container.instDropdown:SetPoint("LEFT", instLabel, "RIGHT", -10, -2)
+
+    -- Hour controls label
+    local hourLabel = filterRow:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    hourLabel:SetPoint("LEFT", container.instDropdown, "RIGHT", 20, 2)
+    hourLabel:SetText(L.STATS_HOUR_PROMPT)
+
+    -- Remove hour button
+    container.removeHourBtn = CreateFrame("Button", nil, filterRow, "UIPanelButtonTemplate")
+    container.removeHourBtn:SetSize(20, 20)
+    container.removeHourBtn:SetPoint("LEFT", hourLabel, "RIGHT", 4, 0)
+    container.removeHourBtn:SetText(L.STATS_REMOVE_HOUR)
+
+    -- Add hour button
+    container.addHourBtn = CreateFrame("Button", nil, filterRow, "UIPanelButtonTemplate")
+    container.addHourBtn:SetSize(20, 20)
+    container.addHourBtn:SetPoint("LEFT", container.removeHourBtn, "RIGHT", 2, 0)
+    container.addHourBtn:SetText(L.STATS_ADD_HOUR)
+
+    container.filterRow = filterRow
+
+    -- Table area
+    local tableArea = CreateFrame("Frame", nil, container)
+    tableArea:SetPoint("TOPLEFT", 0, -32)
+    tableArea:SetPoint("BOTTOMRIGHT", 0, 0)
+    container.tableArea = tableArea
+
+    -- Table header
+    container.tableHeader = CreateStatsHeader(tableArea)
+
+    -- Scroll frame for rows
+    local scrollFrame = CreateFrame("ScrollFrame", nil, tableArea, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetPoint("TOPLEFT", 0, -TABLE_HEADER_HEIGHT)
     scrollFrame:SetPoint("BOTTOMRIGHT", -20, 0)
     container.scrollFrame = scrollFrame
 
-    -- Edit box (read-only, copyable)
-    local editBox = CreateFrame("EditBox", nil, scrollFrame)
-    editBox:SetMultiLine(true)
-    editBox:SetFontObject("GameFontHighlightSmall")
-    editBox:SetWidth(scrollFrame:GetWidth() - 16)
-    editBox:SetAutoFocus(false)
-    editBox:EnableMouse(true)
-    editBox:SetScript("OnEscapePressed", function(self)
-        self:ClearFocus()
-    end)
-    editBox:SetScript("OnChar", function() end)
-    editBox:SetScript("OnKeyDown", function(self, key)
-        if key == "C" and IsControlKeyDown() then
-            return
-        end
-        if key == "A" and IsControlKeyDown() then
-            self:HighlightText()
-            return
-        end
-    end)
-    scrollFrame:SetScrollChild(editBox)
-    container.editBox = editBox
+    -- Content frame for rows
+    local content = CreateFrame("Frame", nil, scrollFrame)
+    content:SetSize(scrollFrame:GetWidth(), 1)
+    scrollFrame:SetScrollChild(content)
+    container.content = content
 
     return container
+end
+
+-- Initialize stats instance dropdown
+local function InitStatsInstanceDropdown(dropdown, entries, onChange)
+    local L = FDC.L
+
+    UIDropDownMenu_Initialize(dropdown, function(self, level)
+        local info = UIDropDownMenu_CreateInfo()
+
+        -- "All" option
+        info.text = L.LOG_FILTER_ALL
+        info.value = nil
+        info.checked = (statsFilters.instance == nil)
+        info.func = function()
+            statsFilters.instance = nil
+            UIDropDownMenu_SetText(dropdown, L.LOG_FILTER_ALL)
+            onChange()
+        end
+        UIDropDownMenu_AddButton(info, level)
+
+        -- Instance options
+        local instances = GetUniqueInstances(entries)
+        for _, inst in ipairs(instances) do
+            info = UIDropDownMenu_CreateInfo()
+            info.text = inst.name
+            info.value = inst.id
+            info.checked = (statsFilters.instance == inst.id)
+            info.func = function()
+                statsFilters.instance = inst.id
+                UIDropDownMenu_SetText(dropdown, inst.name)
+                onChange()
+            end
+            UIDropDownMenu_AddButton(info, level)
+        end
+    end)
+
+    -- Set current text
+    if statsFilters.instance then
+        local instances = GetUniqueInstances(entries)
+        for _, inst in ipairs(instances) do
+            if inst.id == statsFilters.instance then
+                UIDropDownMenu_SetText(dropdown, inst.name)
+                return
+            end
+        end
+    end
+    UIDropDownMenu_SetText(dropdown, L.LOG_FILTER_ALL)
+end
+
+-- Update stats view with data
+local function UpdateStatsView(frame, statsData)
+    local L = FDC.L
+
+    -- Update header
+    UpdateStatsHeaderColumns(frame.statsView.tableHeader)
+
+    HideAllStatsRows()
+
+    local content = frame.statsView.content
+    local rowCount = #statsData.characters + 1  -- +1 for totals row
+    local totalHeight = rowCount * TABLE_ROW_HEIGHT
+    content:SetHeight(math.max(1, totalHeight))
+
+    -- Character rows
+    for i, charData in ipairs(statsData.characters) do
+        local row = GetStatsRow(content, i)
+        row:SetPoint("TOPLEFT", 0, -(i - 1) * TABLE_ROW_HEIGHT)
+        row:SetPoint("TOPRIGHT", 0, -(i - 1) * TABLE_ROW_HEIGHT)
+        UpdateStatsRowColumns(row, charData)
+    end
+
+    -- Totals row
+    local totalIndex = #statsData.characters + 1
+    local totalRow = GetStatsRow(content, totalIndex)
+    totalRow:SetPoint("TOPLEFT", 0, -(totalIndex - 1) * TABLE_ROW_HEIGHT)
+    totalRow:SetPoint("TOPRIGHT", 0, -(totalIndex - 1) * TABLE_ROW_HEIGHT)
+    totalRow.bg:SetColorTexture(0.3, 0.3, 0.1, 0.3)  -- Highlight totals row
+    UpdateStatsRowColumns(totalRow, {
+        name = L.STAT_TOTAL,
+        total = statsData.totals.total,
+        hourCounts = statsData.totals.hourCounts
+    })
 end
 
 -- Update table view with filtered data
@@ -651,10 +840,48 @@ function FDC:UpdateLogWindow()
         UpdateTableView(self.logWindow, logData.entries)
 
     elseif currentView == VIEW_STATS then
-        local statsData = self:GetStatisticsData("1,6,24")
-        local text = FormatStatistics(statsData)
-        self.logWindow.statsView.editBox:SetText(text)
-        self.logWindow.statsView.editBox:SetCursorPosition(0)
+        -- Build hours string from statsHours
+        local hoursStr = table.concat(statsHours, ",")
+        local instanceArg = statsFilters.instance and (" " .. statsFilters.instance) or ""
+        local statsData = self:GetStatisticsData(hoursStr .. instanceArg)
+
+        -- Update instance dropdown
+        local function onFilterChange()
+            self:UpdateLogWindow()
+        end
+        InitStatsInstanceDropdown(self.logWindow.statsView.instDropdown, logData.entries, onFilterChange)
+
+        -- Wire up hour buttons
+        self.logWindow.statsView.addHourBtn:SetScript("OnClick", function()
+            -- Add next logical hour (double the last, or 48 max)
+            local lastHour = statsHours[#statsHours] or 12
+            local newHour = math.min(lastHour * 2, 168)  -- Max 1 week
+            -- Avoid duplicates
+            local exists = false
+            for _, h in ipairs(statsHours) do
+                if h == newHour then
+                    exists = true
+                    break
+                end
+            end
+            if not exists then
+                table.insert(statsHours, newHour)
+                table.sort(statsHours)
+            end
+            self:UpdateLogWindow()
+        end)
+
+        self.logWindow.statsView.removeHourBtn:SetScript("OnClick", function()
+            if #statsHours > 1 then
+                table.remove(statsHours)  -- Remove last
+                self:UpdateLogWindow()
+            end
+        end)
+
+        -- Update button states
+        self.logWindow.statsView.removeHourBtn:SetEnabled(#statsHours > 1)
+
+        UpdateStatsView(self.logWindow, statsData)
     end
 end
 
