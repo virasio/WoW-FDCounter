@@ -27,6 +27,12 @@ local commands = {
     ["help"] = function()
         FDC:PrintHelp()
     end,
+    ["show"] = function()
+        FDC:ShowPanel()
+    end,
+    ["hide"] = function()
+        FDC:HidePanel()
+    end,
 }
 
 -- Register slash commands

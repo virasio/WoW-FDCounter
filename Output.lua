@@ -46,9 +46,10 @@ function FDC:PrintLog(logData)
     end
 
     for _, entry in ipairs(logData.entries) do
+        local instanceName = entry.instanceID and GetRealZoneText(entry.instanceID) or nil
         local instanceDisplay
-        if entry.instanceName then
-            instanceDisplay = entry.instanceName .. " (ID:" .. (entry.instanceID or "?") .. ")"
+        if instanceName and instanceName ~= "" then
+            instanceDisplay = instanceName .. " (ID:" .. entry.instanceID .. ")"
         else
             instanceDisplay = "ID:" .. (entry.instanceID or "?")
         end
@@ -113,4 +114,6 @@ function FDC:PrintHelp()
     print(L.HELP_CMD_STAT)
     print(L.HELP_CMD_STAT_EX1)
     print(L.HELP_CMD_STAT_EX2)
+    print(L.HELP_CMD_SHOW)
+    print(L.HELP_CMD_HIDE)
 end

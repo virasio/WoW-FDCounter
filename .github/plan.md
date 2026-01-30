@@ -53,7 +53,7 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 
 ### Stage 5: Extended Log and Statistics
 #### 5.1: Event Logging ✅
-1. Log structure: `FDCounterDB.log = { {time, event, character, instanceID, instanceName}, ... }`
+1. Log structure: `FDCounterDB.log = { {time, event, character, instanceID}, ... }`
 2. Events: `entry`, `exit`, `reentry`, `complete`
 3. Character format: `"Name-Realm"`
 4. Clear log on daily reset
@@ -80,9 +80,48 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 5. Merge → tag `v0.2.0`
 
 ### Stage 6: UI Panel
-1. Draggable frame with text `"FD: N"`
-2. Save position in `FDCounterDB.position`
-3. Commands `/fdcounter show`, `/fdcounter hide`
+
+#### 6.1: Basic Panel ✅
+1. Draggable panel with entry count and time until reset (H:mm format)
+2. Save position in `FDCounterDB.panelPosition`
+3. Save visibility in `FDCounterDB.panelVisible`
+4. Commands `/fdcounter show`, `/fdcounter hide`
+5. Quick action buttons: leave dungeon, reset counter
+6. Timer updates every minute
+7. Commit to `develop`
+
+#### 6.2: Counter Editing ✅
+1. Inline buttons on hover: reset, minus, plus, manual input
+2. Input dialog with validation (0-99)
+3. Commit to `develop`
+
+#### 6.3: UI Code Refactoring ✅
+1. Split monolithic `UI.lua` (438 lines) into modular structure:
+   - `UI/UIConstants.lua` — sizes, backdrop configurations
+   - `UI/UIWidgets.lua` — button factories, helper functions
+   - `UI/InputDialog.lua` — input dialog creation
+   - `UI/Panel.lua` — main panel with local helper functions
+2. Eliminated backdrop duplication (4x → 1x via `UI.ApplyBackdrop`)
+3. Commit to `develop`
+
+#### 6.4: Log and Statistics Window ✅
+1. Log window with RAW/Table/Stats view tabs
+2. RAW view: CSV format (timestamp,event,character,instanceID)
+3. Table view: localized table with formatted time and event names
+4. Stats view: statistics with 1h, 6h, 24h columns
+5. Commit to `develop`
+
+#### 6.5: Log Window Improvements ✅
+1. Resizable window (drag bottom-right corner), draggable by title bar
+2. Table view: real table with character/instance dropdown filters
+3. Stats view: real table with dynamic hour columns (+/- buttons), instance filter
+4. Instance names via `GetRealZoneText(instanceID)` for localization
+5. Commit to `develop`
+
+#### 6.6: Panel Header ✅
+1. Header bar "Follower Dungeons" above panel
+2. Close button appears on header hover
+3. Panel width 96px, header height 28px
 4. Merge → tag `v1.0.0`
 
 ## Technical Notes

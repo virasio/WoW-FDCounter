@@ -18,6 +18,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Extract version changelog
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          VERSION_RE=$(echo "$VERSION" | sed 's/\./\\./g')
+          mkdir -p .tmp
+          sed -n "/^## ${VERSION_RE}$/,/^## /p" CHANGELOG.md | sed '$ { /^## /d; }' > .tmp/changelog.md
+
       - name: Package and Release
         uses: BigWigsMods/packager@v2
         env:
