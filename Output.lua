@@ -113,4 +113,6 @@ function FDC:PrintHelp()
     print(L.HELP_CMD_STAT)
     print(L.HELP_CMD_STAT_EX1)
     print(L.HELP_CMD_STAT_EX2)
+    print(L.HELP_CMD_SHOW)
+    print(L.HELP_CMD_HIDE)
 end

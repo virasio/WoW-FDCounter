@@ -1,7 +1,7 @@
 # FDCounter
 
 ![Status](https://badgen.net/static/status/beta/yellow)
-![Version](https://badgen.net/static/version/0.2.0/green)
+![Version](https://badgen.net/static/version/1.0.0/green)
 ![WoW Version](https://badgen.net/static/WoW/12.0.0/cyan)
 ![License](https://badgen.net/static/license/MIT/blue)
 
@@ -11,6 +11,7 @@ Follower Dungeons have a daily entry limit per account. This addon automatically
 
 ## Features
 
+- **Draggable UI panel** — shows entry count and time until reset, with quick action buttons
 - **Automatic detection** — counts entries when you zone into a Follower Dungeon
 - **Persistent counter** — saves between sessions
 - **Auto-reset** — resets at server daily reset time
@@ -59,3 +60,9 @@ Virasio-Ravencrest, 8, 2, 4
 Angelochka-Ravencrest, 3, 1, 2
 Total, 8, 3, 6
 ```
+
+### `/fdcounter show`
+Shows the UI panel.
+
+### `/fdcounter hide`
+Hides the UI panel.

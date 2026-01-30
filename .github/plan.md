@@ -80,10 +80,24 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 5. Merge → tag `v0.2.0`
 
 ### Stage 6: UI Panel
-1. Draggable frame with text `"FD: N"`
-2. Save position in `FDCounterDB.position`
-3. Commands `/fdcounter show`, `/fdcounter hide`
-4. Merge → tag `v1.0.0`
+
+#### 6.1: Basic Panel ✅
+1. Draggable panel with entry count and time until reset (H:mm format)
+2. Save position in `FDCounterDB.panelPosition`
+3. Save visibility in `FDCounterDB.panelVisible`
+4. Commands `/fdcounter show`, `/fdcounter hide`
+5. Quick action buttons: leave dungeon, reset counter
+6. Timer updates every minute
+7. Commit to `develop`
+
+#### 6.2: Counter Editing (planned)
+1. Buttons for manual increment/decrement of counter
+2. UI for direct value input
+
+#### 6.3: Log and Statistics Window (planned)
+1. UI window for viewing event log
+2. UI window for viewing statistics
+3. Merge → tag `v1.0.0`
 
 ## Technical Notes
 

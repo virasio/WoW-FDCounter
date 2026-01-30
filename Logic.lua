@@ -8,6 +8,7 @@ function FDC:IncrementCounter()
     self:CheckAndResetCounter()
     FDCounterDB.count = FDCounterDB.count + 1
     FDCounterDB.resetTime = self:GetNextResetTime()
+    self:UpdatePanel()
 end
 
 -- Check if player is in a Follower Dungeon
@@ -71,6 +72,12 @@ function FDC:Initialize()
     self:InitializeStorage()
     self:CheckAndResetCounter()
     self:RegisterCommands()
+    self:CreatePanel()
+    if self:IsPanelVisible() then
+        self.panel:Show()
+        self:UpdatePanel()
+    end
+    self:StartPanelTimer()
 end
 
 -- Handle group left event

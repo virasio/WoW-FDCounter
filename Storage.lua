@@ -11,6 +11,8 @@ local defaults = {
     currentInstanceName = nil,
     log = {},
     helpShown = false,
+    panelPosition = nil,  -- {point, relativeTo, relativePoint, x, y}
+    panelVisible = true,
 }
 
 -- Calculate next daily reset timestamp
@@ -93,4 +95,24 @@ end
 -- Get log entries
 function FDC:GetLog()
     return FDCounterDB.log
+end
+
+-- Get panel position
+function FDC:GetPanelPosition()
+    return FDCounterDB.panelPosition
+end
+
+-- Save panel position
+function FDC:SavePanelPosition(point, relativeTo, relativePoint, x, y)
+    FDCounterDB.panelPosition = {point, relativeTo, relativePoint, x, y}
+end
+
+-- Check if panel is visible
+function FDC:IsPanelVisible()
+    return FDCounterDB.panelVisible
+end
+
+-- Set panel visibility
+function FDC:SetPanelVisible(visible)
+    FDCounterDB.panelVisible = visible
 end
