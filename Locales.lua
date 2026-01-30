@@ -66,8 +66,15 @@ local L = {
     EVENT_REENTRY = "Re-entry",
     EVENT_COMPLETE = "Complete",
 
-    -- Table view header
+    -- Table view
     LOG_TABLE_HEADER = "Time      Event     Character            Instance",
+    LOG_FILTER_ALL = "All",
+    LOG_FILTER_CHARACTER = "Character:",
+    LOG_FILTER_INSTANCE = "Instance:",
+    LOG_COL_TIME = "Time",
+    LOG_COL_EVENT = "Event",
+    LOG_COL_CHARACTER = "Character",
+    LOG_COL_INSTANCE = "Instance",
 }
 
 -- Store in namespace

@@ -10,8 +10,14 @@ local VIEW_RAW = 1
 local VIEW_TABLE = 2
 local VIEW_STATS = 3
 
--- Current view mode
+-- Current state
 local currentView = VIEW_RAW
+local tableFilters = { character = nil, instance = nil }
+
+-- Table row pool
+local tableRowPool = {}
+local TABLE_ROW_HEIGHT = 16
+local TABLE_HEADER_HEIGHT = 20
 
 -- Event name localization mapping
 local function GetLocalizedEventName(event)
@@ -43,35 +49,7 @@ local function FormatRawLog(entries)
     return table.concat(lines, "\n")
 end
 
--- Format log entries as localized table
-local function FormatTableLog(entries)
-    local L = FDC.L
-
-    if #entries == 0 then
-        return L.LOG_NO_ENTRIES
-    end
-
-    local lines = { L.LOG_TABLE_HEADER }
-    for _, entry in ipairs(entries) do
-        local timeStr = date("%H:%M:%S", entry.time)
-        local eventStr = GetLocalizedEventName(entry.event)
-        local instanceStr
-        if entry.instanceName then
-            instanceStr = entry.instanceName .. " (" .. (entry.instanceID or "?") .. ")"
-        else
-            instanceStr = tostring(entry.instanceID or "?")
-        end
-        table.insert(lines, string.format("%-9s %-9s %-20s %s",
-            timeStr,
-            eventStr,
-            entry.character,
-            instanceStr
-        ))
-    end
-    return table.concat(lines, "\n")
-end
-
--- Format statistics data
+-- Format statistics data (text mode for Stats tab)
 local function FormatStatistics(statsData)
     local L = FDC.L
 
@@ -108,6 +86,50 @@ local function FormatStatistics(statsData)
     return table.concat(lines, "\n")
 end
 
+-- Get unique values from log for filters
+local function GetUniqueCharacters(entries)
+    local seen = {}
+    local list = {}
+    for _, entry in ipairs(entries) do
+        if not seen[entry.character] then
+            seen[entry.character] = true
+            table.insert(list, entry.character)
+        end
+    end
+    table.sort(list)
+    return list
+end
+
+local function GetUniqueInstances(entries)
+    local seen = {}
+    local list = {}
+    for _, entry in ipairs(entries) do
+        local key = entry.instanceID or 0
+        if not seen[key] then
+            seen[key] = true
+            table.insert(list, {
+                id = entry.instanceID,
+                name = entry.instanceName or ("ID:" .. (entry.instanceID or "?"))
+            })
+        end
+    end
+    table.sort(list, function(a, b) return (a.name or "") < (b.name or "") end)
+    return list
+end
+
+-- Filter entries based on current filters
+local function FilterEntries(entries)
+    local filtered = {}
+    for _, entry in ipairs(entries) do
+        local passChar = (tableFilters.character == nil) or (entry.character == tableFilters.character)
+        local passInst = (tableFilters.instance == nil) or (entry.instanceID == tableFilters.instance)
+        if passChar and passInst then
+            table.insert(filtered, entry)
+        end
+    end
+    return filtered
+end
+
 -- Create a tab button
 local function CreateTabButton(parent, text, viewMode, onClick)
     local btn = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
@@ -137,14 +159,364 @@ end
 
 -- Update editBox width to match scroll frame
 local function UpdateEditBoxWidth(frame)
-    local scrollWidth = frame.scrollFrame:GetWidth()
-    frame.editBox:SetWidth(math.max(1, scrollWidth - 16))
+    if frame.rawView and frame.rawView.scrollFrame then
+        local scrollWidth = frame.rawView.scrollFrame:GetWidth()
+        frame.rawView.editBox:SetWidth(math.max(1, scrollWidth - 16))
+    end
 end
 
 -- Save window position and size
 local function SaveWindowState(frame)
     FDC:SaveLogWindowPosition(frame:GetPoint())
     FDC:SaveLogWindowSize(frame:GetWidth(), frame:GetHeight())
+end
+
+-- Create dropdown menu
+local function CreateDropdown(parent, name, width)
+    local dropdown = CreateFrame("Frame", name, parent, "UIDropDownMenuTemplate")
+    UIDropDownMenu_SetWidth(dropdown, width)
+    return dropdown
+end
+
+-- Initialize character dropdown
+local function InitCharacterDropdown(dropdown, entries, onChange)
+    local L = FDC.L
+
+    UIDropDownMenu_Initialize(dropdown, function(self, level)
+        local info = UIDropDownMenu_CreateInfo()
+
+        -- "All" option
+        info.text = L.LOG_FILTER_ALL
+        info.value = nil
+        info.checked = (tableFilters.character == nil)
+        info.func = function()
+            tableFilters.character = nil
+            UIDropDownMenu_SetText(dropdown, L.LOG_FILTER_ALL)
+            onChange()
+        end
+        UIDropDownMenu_AddButton(info, level)
+
+        -- Character options
+        local characters = GetUniqueCharacters(entries)
+        for _, char in ipairs(characters) do
+            info = UIDropDownMenu_CreateInfo()
+            info.text = char
+            info.value = char
+            info.checked = (tableFilters.character == char)
+            info.func = function()
+                tableFilters.character = char
+                UIDropDownMenu_SetText(dropdown, char)
+                onChange()
+            end
+            UIDropDownMenu_AddButton(info, level)
+        end
+    end)
+
+    UIDropDownMenu_SetText(dropdown, tableFilters.character or L.LOG_FILTER_ALL)
+end
+
+-- Initialize instance dropdown
+local function InitInstanceDropdown(dropdown, entries, onChange)
+    local L = FDC.L
+
+    UIDropDownMenu_Initialize(dropdown, function(self, level)
+        local info = UIDropDownMenu_CreateInfo()
+
+        -- "All" option
+        info.text = L.LOG_FILTER_ALL
+        info.value = nil
+        info.checked = (tableFilters.instance == nil)
+        info.func = function()
+            tableFilters.instance = nil
+            UIDropDownMenu_SetText(dropdown, L.LOG_FILTER_ALL)
+            onChange()
+        end
+        UIDropDownMenu_AddButton(info, level)
+
+        -- Instance options
+        local instances = GetUniqueInstances(entries)
+        for _, inst in ipairs(instances) do
+            info = UIDropDownMenu_CreateInfo()
+            info.text = inst.name
+            info.value = inst.id
+            info.checked = (tableFilters.instance == inst.id)
+            info.func = function()
+                tableFilters.instance = inst.id
+                UIDropDownMenu_SetText(dropdown, inst.name)
+                onChange()
+            end
+            UIDropDownMenu_AddButton(info, level)
+        end
+    end)
+
+    -- Set current text
+    if tableFilters.instance then
+        local instances = GetUniqueInstances(entries)
+        for _, inst in ipairs(instances) do
+            if inst.id == tableFilters.instance then
+                UIDropDownMenu_SetText(dropdown, inst.name)
+                return
+            end
+        end
+    end
+    UIDropDownMenu_SetText(dropdown, L.LOG_FILTER_ALL)
+end
+
+-- Create or get a table row from pool
+local function GetTableRow(parent, index)
+    if tableRowPool[index] then
+        tableRowPool[index]:Show()
+        return tableRowPool[index]
+    end
+
+    local row = CreateFrame("Frame", nil, parent)
+    row:SetHeight(TABLE_ROW_HEIGHT)
+
+    -- Alternating background
+    row.bg = row:CreateTexture(nil, "BACKGROUND")
+    row.bg:SetAllPoints()
+    row.bg:SetColorTexture(1, 1, 1, index % 2 == 0 and 0.05 or 0)
+
+    -- Columns: Time (60), Event (70), Character (120), Instance (rest)
+    row.timeText = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.timeText:SetPoint("LEFT", 4, 0)
+    row.timeText:SetWidth(56)
+    row.timeText:SetJustifyH("LEFT")
+
+    row.eventText = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.eventText:SetPoint("LEFT", 64, 0)
+    row.eventText:SetWidth(66)
+    row.eventText:SetJustifyH("LEFT")
+
+    row.charText = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.charText:SetPoint("LEFT", 134, 0)
+    row.charText:SetWidth(116)
+    row.charText:SetJustifyH("LEFT")
+
+    row.instText = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.instText:SetPoint("LEFT", 254, 0)
+    row.instText:SetPoint("RIGHT", -4, 0)
+    row.instText:SetJustifyH("LEFT")
+
+    tableRowPool[index] = row
+    return row
+end
+
+-- Hide all table rows
+local function HideAllTableRows()
+    for _, row in pairs(tableRowPool) do
+        row:Hide()
+    end
+end
+
+-- Create table header
+local function CreateTableHeader(parent)
+    local L = FDC.L
+
+    local header = CreateFrame("Frame", nil, parent)
+    header:SetHeight(TABLE_HEADER_HEIGHT)
+    header:SetPoint("TOPLEFT", 0, 0)
+    header:SetPoint("TOPRIGHT", 0, 0)
+
+    header.bg = header:CreateTexture(nil, "BACKGROUND")
+    header.bg:SetAllPoints()
+    header.bg:SetColorTexture(0.2, 0.2, 0.2, 0.8)
+
+    -- Column headers
+    header.timeText = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    header.timeText:SetPoint("LEFT", 4, 0)
+    header.timeText:SetText(L.LOG_COL_TIME)
+
+    header.eventText = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    header.eventText:SetPoint("LEFT", 64, 0)
+    header.eventText:SetText(L.LOG_COL_EVENT)
+
+    header.charText = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    header.charText:SetPoint("LEFT", 134, 0)
+    header.charText:SetText(L.LOG_COL_CHARACTER)
+
+    header.instText = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    header.instText:SetPoint("LEFT", 254, 0)
+    header.instText:SetText(L.LOG_COL_INSTANCE)
+
+    return header
+end
+
+-- Create RAW view container
+local function CreateRawView(parent)
+    local container = CreateFrame("Frame", nil, parent)
+    container:SetPoint("TOPLEFT", 8, -50)
+    container:SetPoint("BOTTOMRIGHT", -8, 20)
+
+    -- Scroll frame
+    local scrollFrame = CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetPoint("TOPLEFT", 0, 0)
+    scrollFrame:SetPoint("BOTTOMRIGHT", -20, 0)
+    container.scrollFrame = scrollFrame
+
+    -- Edit box (read-only, copyable)
+    local editBox = CreateFrame("EditBox", nil, scrollFrame)
+    editBox:SetMultiLine(true)
+    editBox:SetFontObject("GameFontHighlightSmall")
+    editBox:SetWidth(scrollFrame:GetWidth() - 16)
+    editBox:SetAutoFocus(false)
+    editBox:EnableMouse(true)
+    editBox:SetScript("OnEscapePressed", function(self)
+        self:ClearFocus()
+    end)
+    editBox:SetScript("OnChar", function() end)
+    editBox:SetScript("OnKeyDown", function(self, key)
+        if key == "C" and IsControlKeyDown() then
+            return
+        end
+        if key == "A" and IsControlKeyDown() then
+            self:HighlightText()
+            return
+        end
+    end)
+    scrollFrame:SetScrollChild(editBox)
+    container.editBox = editBox
+
+    return container
+end
+
+-- Create Table view container
+local function CreateTableView(parent)
+    local L = FDC.L
+    local container = CreateFrame("Frame", nil, parent)
+    container:SetPoint("TOPLEFT", 8, -50)
+    container:SetPoint("BOTTOMRIGHT", -8, 20)
+
+    -- Filter row
+    local filterRow = CreateFrame("Frame", nil, container)
+    filterRow:SetPoint("TOPLEFT", 0, 0)
+    filterRow:SetPoint("TOPRIGHT", 0, 0)
+    filterRow:SetHeight(28)
+
+    -- Character filter label
+    local charLabel = filterRow:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    charLabel:SetPoint("LEFT", 0, 0)
+    charLabel:SetText(L.LOG_FILTER_CHARACTER)
+
+    -- Character dropdown
+    container.charDropdown = CreateDropdown(filterRow, "FDCLogCharDropdown", 100)
+    container.charDropdown:SetPoint("LEFT", charLabel, "RIGHT", -10, -2)
+
+    -- Instance filter label
+    local instLabel = filterRow:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    instLabel:SetPoint("LEFT", container.charDropdown, "RIGHT", 10, 2)
+    instLabel:SetText(L.LOG_FILTER_INSTANCE)
+
+    -- Instance dropdown
+    container.instDropdown = CreateDropdown(filterRow, "FDCLogInstDropdown", 120)
+    container.instDropdown:SetPoint("LEFT", instLabel, "RIGHT", -10, -2)
+
+    container.filterRow = filterRow
+
+    -- Table area (below filters)
+    local tableArea = CreateFrame("Frame", nil, container)
+    tableArea:SetPoint("TOPLEFT", 0, -32)
+    tableArea:SetPoint("BOTTOMRIGHT", 0, 0)
+    container.tableArea = tableArea
+
+    -- Table header
+    container.tableHeader = CreateTableHeader(tableArea)
+
+    -- Scroll frame for rows
+    local scrollFrame = CreateFrame("ScrollFrame", nil, tableArea, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetPoint("TOPLEFT", 0, -TABLE_HEADER_HEIGHT)
+    scrollFrame:SetPoint("BOTTOMRIGHT", -20, 0)
+    container.scrollFrame = scrollFrame
+
+    -- Content frame for rows
+    local content = CreateFrame("Frame", nil, scrollFrame)
+    content:SetSize(scrollFrame:GetWidth(), 1)
+    scrollFrame:SetScrollChild(content)
+    container.content = content
+
+    return container
+end
+
+-- Create Stats view container (text-based for now, will be table later)
+local function CreateStatsView(parent)
+    local container = CreateFrame("Frame", nil, parent)
+    container:SetPoint("TOPLEFT", 8, -50)
+    container:SetPoint("BOTTOMRIGHT", -8, 20)
+
+    -- Scroll frame
+    local scrollFrame = CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetPoint("TOPLEFT", 0, 0)
+    scrollFrame:SetPoint("BOTTOMRIGHT", -20, 0)
+    container.scrollFrame = scrollFrame
+
+    -- Edit box (read-only, copyable)
+    local editBox = CreateFrame("EditBox", nil, scrollFrame)
+    editBox:SetMultiLine(true)
+    editBox:SetFontObject("GameFontHighlightSmall")
+    editBox:SetWidth(scrollFrame:GetWidth() - 16)
+    editBox:SetAutoFocus(false)
+    editBox:EnableMouse(true)
+    editBox:SetScript("OnEscapePressed", function(self)
+        self:ClearFocus()
+    end)
+    editBox:SetScript("OnChar", function() end)
+    editBox:SetScript("OnKeyDown", function(self, key)
+        if key == "C" and IsControlKeyDown() then
+            return
+        end
+        if key == "A" and IsControlKeyDown() then
+            self:HighlightText()
+            return
+        end
+    end)
+    scrollFrame:SetScrollChild(editBox)
+    container.editBox = editBox
+
+    return container
+end
+
+-- Update table view with filtered data
+local function UpdateTableView(frame, entries)
+    local filtered = FilterEntries(entries)
+    local content = frame.tableView.content
+
+    HideAllTableRows()
+
+    local totalHeight = #filtered * TABLE_ROW_HEIGHT
+    content:SetHeight(math.max(1, totalHeight))
+
+    for i, entry in ipairs(filtered) do
+        local row = GetTableRow(content, i)
+        row:SetPoint("TOPLEFT", 0, -(i - 1) * TABLE_ROW_HEIGHT)
+        row:SetPoint("TOPRIGHT", 0, -(i - 1) * TABLE_ROW_HEIGHT)
+
+        row.timeText:SetText(date("%H:%M:%S", entry.time))
+        row.eventText:SetText(GetLocalizedEventName(entry.event))
+        row.charText:SetText(entry.character)
+
+        local instStr
+        if entry.instanceName then
+            instStr = entry.instanceName .. " (" .. (entry.instanceID or "?") .. ")"
+        else
+            instStr = "ID:" .. (entry.instanceID or "?")
+        end
+        row.instText:SetText(instStr)
+    end
+end
+
+-- Show/hide view containers
+local function ShowView(frame, view)
+    frame.rawView:Hide()
+    frame.tableView:Hide()
+    frame.statsView:Hide()
+
+    if view == VIEW_RAW then
+        frame.rawView:Show()
+    elseif view == VIEW_TABLE then
+        frame.tableView:Show()
+    elseif view == VIEW_STATS then
+        frame.statsView:Show()
+    end
 end
 
 -- Create the log window
@@ -193,6 +565,7 @@ local function CreateLogWindow()
     -- Tab buttons
     local function OnTabClick()
         UpdateTabStates(frame)
+        ShowView(frame, currentView)
         FDC:UpdateLogWindow()
     end
 
@@ -207,37 +580,13 @@ local function CreateLogWindow()
 
     UpdateTabStates(frame)
 
-    -- Scroll frame
-    local scrollFrame = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", 8, -50)
-    scrollFrame:SetPoint("BOTTOMRIGHT", -28, 20)
-    frame.scrollFrame = scrollFrame
+    -- Create view containers
+    frame.rawView = CreateRawView(frame)
+    frame.tableView = CreateTableView(frame)
+    frame.statsView = CreateStatsView(frame)
 
-    -- Edit box (read-only, copyable)
-    local editBox = CreateFrame("EditBox", nil, scrollFrame)
-    editBox:SetMultiLine(true)
-    editBox:SetFontObject("GameFontHighlightSmall")
-    editBox:SetWidth(scrollFrame:GetWidth() - 16)
-    editBox:SetAutoFocus(false)
-    editBox:EnableMouse(true)
-    editBox:SetScript("OnEscapePressed", function(self)
-        self:ClearFocus()
-    end)
-    -- Make read-only by ignoring character input
-    editBox:SetScript("OnChar", function() end)
-    editBox:SetScript("OnKeyDown", function(self, key)
-        -- Allow Ctrl+C for copy
-        if key == "C" and IsControlKeyDown() then
-            return
-        end
-        -- Allow Ctrl+A for select all
-        if key == "A" and IsControlKeyDown() then
-            self:HighlightText()
-            return
-        end
-    end)
-    scrollFrame:SetScrollChild(editBox)
-    frame.editBox = editBox
+    -- Initially show RAW view
+    ShowView(frame, VIEW_RAW)
 
     -- Resize handle (bottom-right corner)
     local resizeBtn = CreateFrame("Button", nil, frame)
@@ -285,20 +634,28 @@ end
 function FDC:UpdateLogWindow()
     if not self.logWindow then return end
 
-    local text
+    local logData = self:GetLogData(24)
+
     if currentView == VIEW_RAW then
-        local logData = self:GetLogData(24)
-        text = FormatRawLog(logData.entries)
+        local text = FormatRawLog(logData.entries)
+        self.logWindow.rawView.editBox:SetText(text)
+        self.logWindow.rawView.editBox:SetCursorPosition(0)
+
     elseif currentView == VIEW_TABLE then
-        local logData = self:GetLogData(24)
-        text = FormatTableLog(logData.entries)
+        -- Update dropdowns
+        local function onFilterChange()
+            UpdateTableView(self.logWindow, logData.entries)
+        end
+        InitCharacterDropdown(self.logWindow.tableView.charDropdown, logData.entries, onFilterChange)
+        InitInstanceDropdown(self.logWindow.tableView.instDropdown, logData.entries, onFilterChange)
+        UpdateTableView(self.logWindow, logData.entries)
+
     elseif currentView == VIEW_STATS then
         local statsData = self:GetStatisticsData("1,6,24")
-        text = FormatStatistics(statsData)
+        local text = FormatStatistics(statsData)
+        self.logWindow.statsView.editBox:SetText(text)
+        self.logWindow.statsView.editBox:SetCursorPosition(0)
     end
-
-    self.logWindow.editBox:SetText(text or "")
-    self.logWindow.editBox:SetCursorPosition(0)
 end
 
 -- Show log window
