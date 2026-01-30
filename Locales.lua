@@ -80,6 +80,9 @@ local L = {
     STATS_ADD_HOUR = "+",
     STATS_REMOVE_HOUR = "-",
     STATS_HOUR_PROMPT = "Hours:",
+    STATS_HOUR_INPUT_TITLE = "Add Hour Column",
+    STATS_HOUR_INPUT_LABEL = "Enter hours (1-24):",
+    STATS_HOUR_DUPLICATE = "FDCounter: Column %dh already exists",
 }
 
 -- Store in namespace

@@ -53,7 +53,7 @@ A World of Warcraft addon to count Follower Dungeon entries with automatic reset
 
 ### Stage 5: Extended Log and Statistics
 #### 5.1: Event Logging ✅
-1. Log structure: `FDCounterDB.log = { {time, event, character, instanceID, instanceName}, ... }`
+1. Log structure: `FDCounterDB.log = { {time, event, character, instanceID}, ... }`
 2. Events: `entry`, `exit`, `reentry`, `complete`
 3. Character format: `"Name-Realm"`
 4. Clear log on daily reset

@@ -12,11 +12,11 @@ function FDC:IncrementCounter()
 end
 
 -- Check if player is in a Follower Dungeon
--- Returns: isFollowerDungeon, instanceID, instanceName
+-- Returns: isFollowerDungeon, instanceID
 function FDC:GetFollowerDungeonInfo()
-    local instanceName, _, difficultyID, _, _, _, _, instanceID = GetInstanceInfo()
+    local _, _, difficultyID, _, _, _, _, instanceID = GetInstanceInfo()
     local isFollowerDungeon = (difficultyID == self.FOLLOWER_DUNGEON_DIFFICULTY)
-    return isFollowerDungeon, instanceID, instanceName
+    return isFollowerDungeon, instanceID
 end
 
 -- Get status data for display
@@ -37,31 +37,31 @@ function FDC:OnPlayerEnteringWorld(isLogin, isReload)
 
     -- Delay check to allow GetInstanceInfo() to update
     C_Timer.After(3, function()
-        local isFollowerDungeon, instanceID, instanceName = self:GetFollowerDungeonInfo()
+        local isFollowerDungeon, instanceID = self:GetFollowerDungeonInfo()
         local currentInstanceID = self:GetCurrentInstanceID()
 
         if isFollowerDungeon then
             if currentInstanceID == nil then
                 -- First entry into this dungeon
-                self:SetCurrentInstance(instanceID, instanceName)
+                self:SetCurrentInstance(instanceID)
                 self:IncrementCounter()
-                self:LogEvent(self.EventType.ENTRY, instanceID, instanceName)
+                self:LogEvent(self.EventType.ENTRY, instanceID)
                 self:PrintStatus(self:GetStatusData(), false)
             elseif currentInstanceID ~= instanceID then
                 -- Entry into a different dungeon (shouldn't happen often)
-                self:SetCurrentInstance(instanceID, instanceName)
+                self:SetCurrentInstance(instanceID)
                 self:IncrementCounter()
-                self:LogEvent(self.EventType.ENTRY, instanceID, instanceName)
+                self:LogEvent(self.EventType.ENTRY, instanceID)
                 self:PrintStatus(self:GetStatusData(), false)
             else
                 -- Re-entry into the same dungeon (via portal)
-                self:LogEvent(self.EventType.REENTRY, instanceID, instanceName)
+                self:LogEvent(self.EventType.REENTRY, instanceID)
             end
         else
             -- Not in a Follower Dungeon
             if currentInstanceID ~= nil then
                 -- Just exited a Follower Dungeon (but still in group)
-                self:LogEvent(self.EventType.EXIT, currentInstanceID, self:GetCurrentInstanceName())
+                self:LogEvent(self.EventType.EXIT, currentInstanceID)
             end
         end
     end)

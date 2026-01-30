@@ -6,12 +6,12 @@ local ADDON_NAME, FDC = ...
 local UI = FDC.UI
 
 -- View modes
-local VIEW_RAW = 1
+local VIEW_STATS = 1
 local VIEW_TABLE = 2
-local VIEW_STATS = 3
+local VIEW_RAW = 3
 
 -- Current state
-local currentView = VIEW_RAW
+local currentView = VIEW_STATS
 local tableFilters = { character = nil, instance = nil }
 local statsFilters = { instance = nil }
 local statsHours = { 1, 6, 24 }  -- Default hour columns
@@ -67,6 +67,16 @@ local function GetUniqueCharacters(entries)
     return list
 end
 
+-- Get instance name by ID (localized)
+local function GetInstanceName(instanceID)
+    if not instanceID then return nil end
+    local name = GetRealZoneText(instanceID)
+    if name and name ~= "" then
+        return name
+    end
+    return nil
+end
+
 local function GetUniqueInstances(entries)
     local seen = {}
     local list = {}
@@ -74,9 +84,10 @@ local function GetUniqueInstances(entries)
         local key = entry.instanceID or 0
         if not seen[key] then
             seen[key] = true
+            local name = GetInstanceName(entry.instanceID) or ("ID:" .. (entry.instanceID or "?"))
             table.insert(list, {
                 id = entry.instanceID,
-                name = entry.instanceName or ("ID:" .. (entry.instanceID or "?"))
+                name = name
             })
         end
     end
@@ -582,6 +593,85 @@ local function CreateStatsView(parent)
     return container
 end
 
+-- Create hour input dialog
+local function CreateHourInputDialog(onConfirm)
+    local L = FDC.L
+
+    local dialog = CreateFrame("Frame", "FDCHourInputDialog", UIParent, "BackdropTemplate")
+    dialog:SetSize(200, 100)
+    dialog:SetPoint("CENTER")
+    UI.ApplyBackdrop(dialog, true)
+    dialog:SetFrameStrata("DIALOG")
+    dialog:EnableMouse(true)
+    dialog:Hide()
+
+    -- Title
+    dialog.title = dialog:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    dialog.title:SetPoint("TOP", 0, -10)
+    dialog.title:SetText(L.STATS_HOUR_INPUT_TITLE)
+
+    -- Label
+    dialog.label = dialog:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    dialog.label:SetPoint("TOP", dialog.title, "BOTTOM", 0, -8)
+    dialog.label:SetText(L.STATS_HOUR_INPUT_LABEL)
+
+    -- Edit box
+    dialog.editBox = CreateFrame("EditBox", nil, dialog, "InputBoxTemplate")
+    dialog.editBox:SetSize(40, 20)
+    dialog.editBox:SetPoint("TOP", dialog.label, "BOTTOM", 0, -5)
+    dialog.editBox:SetAutoFocus(true)
+    dialog.editBox:SetNumeric(true)
+    dialog.editBox:SetMaxLetters(2)
+
+    -- OK button
+    dialog.okBtn = CreateFrame("Button", nil, dialog, "UIPanelButtonTemplate")
+    dialog.okBtn:SetSize(60, 22)
+    dialog.okBtn:SetPoint("BOTTOMLEFT", 20, 10)
+    dialog.okBtn:SetText("OK")
+    dialog.okBtn:Disable()
+
+    -- Cancel button
+    dialog.cancelBtn = CreateFrame("Button", nil, dialog, "UIPanelButtonTemplate")
+    dialog.cancelBtn:SetSize(60, 22)
+    dialog.cancelBtn:SetPoint("BOTTOMRIGHT", -20, 10)
+    dialog.cancelBtn:SetText("Cancel")
+
+    -- Validation
+    local function ValidateInput()
+        local text = dialog.editBox:GetText()
+        local value = tonumber(text)
+        if value and value >= 1 and value <= 24 then
+            dialog.okBtn:Enable()
+        else
+            dialog.okBtn:Disable()
+        end
+    end
+
+    dialog.editBox:SetScript("OnTextChanged", ValidateInput)
+    dialog.editBox:SetScript("OnEnterPressed", function()
+        if dialog.okBtn:IsEnabled() then
+            dialog.okBtn:Click()
+        end
+    end)
+    dialog.editBox:SetScript("OnEscapePressed", function()
+        dialog:Hide()
+    end)
+
+    dialog.okBtn:SetScript("OnClick", function()
+        local value = tonumber(dialog.editBox:GetText())
+        if value and onConfirm then
+            onConfirm(value)
+        end
+        dialog:Hide()
+    end)
+
+    dialog.cancelBtn:SetScript("OnClick", function()
+        dialog:Hide()
+    end)
+
+    return dialog
+end
+
 -- Initialize stats instance dropdown
 local function InitStatsInstanceDropdown(dropdown, entries, onChange)
     local L = FDC.L
@@ -683,9 +773,10 @@ local function UpdateTableView(frame, entries)
         row.eventText:SetText(GetLocalizedEventName(entry.event))
         row.charText:SetText(entry.character)
 
+        local instanceName = GetInstanceName(entry.instanceID)
         local instStr
-        if entry.instanceName then
-            instStr = entry.instanceName .. " (" .. (entry.instanceID or "?") .. ")"
+        if instanceName then
+            instStr = instanceName .. " (" .. entry.instanceID .. ")"
         else
             instStr = "ID:" .. (entry.instanceID or "?")
         end
@@ -758,14 +849,14 @@ local function CreateLogWindow()
         FDC:UpdateLogWindow()
     end
 
-    frame.tabRaw = CreateTabButton(frame, L.LOG_TAB_RAW, VIEW_RAW, OnTabClick)
-    frame.tabRaw:SetPoint("TOPLEFT", 8, -26)
+    frame.tabStats = CreateTabButton(frame, L.LOG_TAB_STATS, VIEW_STATS, OnTabClick)
+    frame.tabStats:SetPoint("TOPLEFT", 8, -26)
 
     frame.tabTable = CreateTabButton(frame, L.LOG_TAB_TABLE, VIEW_TABLE, OnTabClick)
-    frame.tabTable:SetPoint("LEFT", frame.tabRaw, "RIGHT", 2, 0)
+    frame.tabTable:SetPoint("LEFT", frame.tabStats, "RIGHT", 2, 0)
 
-    frame.tabStats = CreateTabButton(frame, L.LOG_TAB_STATS, VIEW_STATS, OnTabClick)
-    frame.tabStats:SetPoint("LEFT", frame.tabTable, "RIGHT", 2, 0)
+    frame.tabRaw = CreateTabButton(frame, L.LOG_TAB_RAW, VIEW_RAW, OnTabClick)
+    frame.tabRaw:SetPoint("LEFT", frame.tabTable, "RIGHT", 2, 0)
 
     UpdateTabStates(frame)
 
@@ -774,8 +865,8 @@ local function CreateLogWindow()
     frame.tableView = CreateTableView(frame)
     frame.statsView = CreateStatsView(frame)
 
-    -- Initially show RAW view
-    ShowView(frame, VIEW_RAW)
+    -- Initially show Stats view
+    ShowView(frame, VIEW_STATS)
 
     -- Resize handle (bottom-right corner)
     local resizeBtn = CreateFrame("Button", nil, frame)
@@ -840,8 +931,8 @@ function FDC:UpdateLogWindow()
         UpdateTableView(self.logWindow, logData.entries)
 
     elseif currentView == VIEW_STATS then
-        -- Build hours string from statsHours
-        local hoursStr = table.concat(statsHours, ",")
+        -- Build hours string from statsHours (empty string if no hours)
+        local hoursStr = #statsHours > 0 and table.concat(statsHours, ",") or ""
         local instanceArg = statsFilters.instance and (" " .. statsFilters.instance) or ""
         local statsData = self:GetStatisticsData(hoursStr .. instanceArg)
 
@@ -853,33 +944,35 @@ function FDC:UpdateLogWindow()
 
         -- Wire up hour buttons
         self.logWindow.statsView.addHourBtn:SetScript("OnClick", function()
-            -- Add next logical hour (double the last, or 48 max)
-            local lastHour = statsHours[#statsHours] or 12
-            local newHour = math.min(lastHour * 2, 168)  -- Max 1 week
-            -- Avoid duplicates
-            local exists = false
-            for _, h in ipairs(statsHours) do
-                if h == newHour then
-                    exists = true
-                    break
-                end
+            -- Create dialog if not exists
+            if not self.hourInputDialog then
+                self.hourInputDialog = CreateHourInputDialog(function(value)
+                    -- Check for duplicate
+                    for _, h in ipairs(statsHours) do
+                        if h == value then
+                            print(string.format(self.L.STATS_HOUR_DUPLICATE, value))
+                            return
+                        end
+                    end
+                    -- Add and sort
+                    table.insert(statsHours, value)
+                    table.sort(statsHours)
+                    self:UpdateLogWindow()
+                end)
             end
-            if not exists then
-                table.insert(statsHours, newHour)
-                table.sort(statsHours)
-            end
-            self:UpdateLogWindow()
+            self.hourInputDialog.editBox:SetText("")
+            self.hourInputDialog:Show()
         end)
 
         self.logWindow.statsView.removeHourBtn:SetScript("OnClick", function()
-            if #statsHours > 1 then
+            if #statsHours > 0 then
                 table.remove(statsHours)  -- Remove last
                 self:UpdateLogWindow()
             end
         end)
 
         -- Update button states
-        self.logWindow.statsView.removeHourBtn:SetEnabled(#statsHours > 1)
+        self.logWindow.statsView.removeHourBtn:SetEnabled(#statsHours > 0)
 
         UpdateStatsView(self.logWindow, statsData)
     end

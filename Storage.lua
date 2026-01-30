@@ -96,19 +96,11 @@ function FDC:GetCurrentInstanceID()
     return data and data.id or nil
 end
 
--- Get current instance name being tracked (per-character)
-function FDC:GetCurrentInstanceName()
-    local charKey = GetCharacterKey()
-    local data = FDCounterDB.currentInstance[charKey]
-    return data and data.name or nil
-end
-
 -- Set current instance info (per-character)
-function FDC:SetCurrentInstance(instanceID, instanceName)
+function FDC:SetCurrentInstance(instanceID)
     local charKey = GetCharacterKey()
     FDCounterDB.currentInstance[charKey] = {
         id = instanceID,
-        name = instanceName,
     }
 end
 
@@ -120,14 +112,13 @@ end
 
 -- Add event to log
 -- event: FDC.EventType.ENTRY, .EXIT, .REENTRY, .COMPLETE
-function FDC:LogEvent(event, instanceID, instanceName)
+function FDC:LogEvent(event, instanceID)
     local character = GetCharacterKey()
     table.insert(FDCounterDB.log, {
         time = time(),
         event = event,
         character = character,
         instanceID = instanceID,
-        instanceName = instanceName,
     })
 end
 
