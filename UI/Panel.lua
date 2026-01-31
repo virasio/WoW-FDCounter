@@ -287,7 +287,7 @@ function FDC:StartPanelTimer()
     self:UpdatePanel()
 
     -- Calculate delay until next minute boundary
-    local seconds = FDCounterDB.resetTime - time()
+    local seconds = self:GetResetTime() - time()
     local delay = seconds % 60
     if delay == 0 then delay = 60 end
 

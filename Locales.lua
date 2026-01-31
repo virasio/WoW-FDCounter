@@ -5,35 +5,27 @@ local ADDON_NAME, FDC = ...
 
 -- Default locale (English)
 local L = {
-    -- Status messages
-    STATUS_FORMAT = "FDCounter: %d entries | Reset in %s",
-    HINT_HELP = "  Use /fdcounter help to see all available commands.",
+    -- Time formatting
     TIME_NOW = "now",
     TIME_FORMAT = "%dh %dm",
-    
+
     -- Help command
-    HELP_HEADER = "FDCounter v%s - Commands:",
-    HELP_CMD_DEFAULT = "  /fdcounter — show current count and time until reset",
-    HELP_CMD_HELP = "  /fdcounter help — show this help message",
-    HELP_CMD_RESET = "  /fdcounter reset — reset counter and log to zero",
-    HELP_CMD_LOG = "  /fdcounter log [H] — show event log for last H hours (default: 24)",
-    HELP_CMD_STAT = "  /fdcounter stat [H1,H2,...] [ID] — show statistics",
-    HELP_CMD_STAT_EX1 = "    Examples: /fdcounter stat 1,6,12",
-    HELP_CMD_STAT_EX2 = "              /fdcounter stat 1,6 2648",
-    HELP_CMD_SHOW = "  /fdcounter show — show UI panel",
-    HELP_CMD_HIDE = "  /fdcounter hide — hide UI panel",
-    
-    -- Log command
-    LOG_HEADER = "FDCounter: Log (last %sh)",
-    LOG_COLUMNS = "Time, Event, Character, Instance",
-    LOG_NO_ENTRIES = "  (no entries)",
-    
-    -- Statistics command
-    STAT_HEADER = "FDCounter: Statistics",
-    STAT_HEADER_INSTANCE = "FDCounter: Statistics (Instance ID: %d)",
-    STAT_TOTAL = "Total",
-    STAT_CHARACTER = "Character",
-    STAT_NO_ENTRIES = "  (no entries)",
+    HELP_HEADER = "FDCounter %s - Follower Dungeon Account-Wide Entry Tracker",
+    HELP_COMMANDS = "Commands:",
+    HELP_CMD_DEFAULT = "  /fdcounter            - Show the addon panel",
+    HELP_CMD_HELP = "  /fdcounter help       - Show this help message",
+    HELP_CMD_RESET = "  /fdcounter reset      - Reset all data and UI",
+    HELP_CMD_RESET_DATA = "  /fdcounter reset data - Reset counter and log only",
+    HELP_CMD_RESET_UI = "  /fdcounter reset ui   - Reset UI positions only",
+    HELP_FOOTER = "Happy hunting! - virasio",
+    HINT_HELP = "  Use /fdcounter help to learn more.",
+
+    -- Panel messages
+    PANEL_SHOWN = "Panel is now visible.",
+    PANEL_ALREADY_VISIBLE = "Panel is already visible.",
+    RESET_FULL_CONFIRMATION = "All data and UI settings have been reset.",
+    RESET_DATA_CONFIRMATION = "Counter and log have been reset.",
+    RESET_UI_CONFIRMATION = "UI positions have been reset.",
 
     -- UI Panel
     PANEL_HEADER = "Follower Dungeons",
@@ -75,6 +67,8 @@ local L = {
     LOG_COL_INSTANCE = "Instance",
 
     -- Stats view
+    STAT_TOTAL = "Total",
+    STAT_CHARACTER = "Character",
     STATS_ADD_HOUR = "+",
     STATS_REMOVE_HOUR = "-",
     STATS_HOUR_PROMPT = "Hours:",
@@ -86,9 +80,4 @@ local L = {
 -- Store in namespace
 FDC.L = L
 
--- Future: Add locale-specific overrides
--- local locale = GetLocale()
--- if locale == "ruRU" then
---     L.STATUS_FORMAT = "FDCounter: %d входов | Сброс через %s"
---     -- ...
--- end
+-- Locale overrides will be added in Stage 3

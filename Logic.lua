@@ -6,8 +6,8 @@ local ADDON_NAME, FDC = ...
 -- Increment counter
 function FDC:IncrementCounter()
     self:CheckAndResetCounter()
-    FDCounterDB.count = FDCounterDB.count + 1
-    FDCounterDB.resetTime = self:GetNextResetTime()
+    self:IncrementCounterManual()
+    self:UpdateResetTime()
     self:UpdatePanel()
 end
 
@@ -24,7 +24,7 @@ end
 function FDC:GetStatusData()
     return {
         count = self:GetCount(),
-        secondsUntilReset = FDCounterDB.resetTime - time()
+        secondsUntilReset = self:GetResetTime() - time()
     }
 end
 

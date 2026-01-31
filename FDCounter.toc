@@ -12,11 +12,10 @@ Locales.lua
 Core.lua
 Storage.lua
 Logic.lua
-Output.lua
 UI\UIConstants.lua
 UI\UIWidgets.lua
 UI\InputDialog.lua
 UI\Panel.lua
 UI\LogWindow.lua
 Events.lua
-Commands.lua
+CLI.lua

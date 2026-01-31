@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Pre-commit hook: Check that FDCounterDB is only used in Storage.lua
+
+# Find FDCounterDB usage in .lua files except Storage.lua
+violations=$(grep -rn "FDCounterDB" --include="*.lua" . | grep -v "Storage.lua" | grep -v "^Binary")
+
+if [ -n "$violations" ]; then
+    echo "ERROR: FDCounterDB should only be accessed in Storage.lua"
+    echo ""
+    echo "Violations found:"
+    echo "$violations"
+    echo ""
+    echo "Use Storage.lua getter/setter functions instead."
+    exit 1
+fi
+
+exit 0
