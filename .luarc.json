@@ -3,14 +3,19 @@
     "runtime.version": "Lua 5.1",
     "workspace.ignoreDir": [".release", ".git"],
     "diagnostics.globals": [
+        "FDC",
         "FDCounterDB",
-        "GetInstanceInfo",
-        "UnitFullName",
-        "C_DateAndTime",
-        "C_Timer",
         "SlashCmdList",
         "SLASH_FDCOUNTER1",
-        "CreateFrame"
+        "LE_PARTY_CATEGORY_INSTANCE",
+        "UIDropDownMenu_Initialize",
+        "UIDropDownMenu_CreateInfo",
+        "UIDropDownMenu_AddButton",
+        "UIDropDownMenu_SetWidth",
+        "UIDropDownMenu_SetText"
+    ],
+    "diagnostics.disable": [
+        "duplicate-set-field"
     ],
     "hint.enable": false,
     "type.weakUnionCheck": true
