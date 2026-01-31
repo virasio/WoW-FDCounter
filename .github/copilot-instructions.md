@@ -9,7 +9,6 @@
 
 - Update `README.md` **before each commit** when new features are added.
 - Keep the README concise and user-focused.
-- Update `.github/plan.md` **before each commit** to reflect current progress.
 
 ## Commit Messages
 
@@ -25,7 +24,7 @@
 
 ## WoW Addon Specifics
 
-- Target Interface version: `120000` (Midnight 12.0.0)
+- Target Interface version: `120001` (Midnight 12.0.1)
 - Use WoW API best practices.
 - Handle events properly with frame:RegisterEvent/SetScript pattern.
 
